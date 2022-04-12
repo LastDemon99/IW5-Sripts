@@ -22,14 +22,13 @@
 - Paste the dll in the scripts folder of your server, load the script in your server.cfg file
 	>Loadscript "Cranked.dll"
 - Another option is rename the dll to Cranked.auto.dll to tekno load it automatically
-- Or finally use a rotation that loads and unloads the scripts in rotation [LB_Rotate](https://github.com/LastDemon99/LB_Rotate)
-
+- 
 # <a name="download"></a>Download
 - The script was made with InfinityScript1.5 to port scripts to 1.1 in a faster way, i made a library, so you need to download and place another file in the script folder, that does not need to be loaded by the server.
  
  Script for InfinityScript 1.5: [Cranked](https://github.com/LastDemon99/LastDemon99/raw/main/Data/IS_1.5_Scripts/Cranked.dll)
  
- ¡¡NeedUpdate!! Script for InfinityScript 1.1: [Cranked](https://github.com/LastDemon99/LastDemon99/raw/main/Data/IS_1.1_Scripts/Cranked.dll) - [IS_Utility](https://github.com/LastDemon99/LastDemon99/raw/main/Data/IS_1.1_Scripts/IS_Utility.dll)
+ ¡¡NeedUpdate!! Script for InfinityScript 1.1: [Cranked](https://github.com/LastDemon99/LastDemon99/raw/main/Data/IS_1.1_Scripts/Cranked.dll) - [IS_Utility](https://github.com/LastDemon99/LastDemon99/raw/main/Data/IS_1.1_Scripts/IS_Utility/IS_Utility.dll)
 
 # <a name="game-modes"></a>Game Modes
 Other game modes you might be interested in:
