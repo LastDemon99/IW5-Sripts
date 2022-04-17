@@ -4,13 +4,13 @@
 
 init()
 {
+	loadDvar();
+	
 	if(getDvar("lb_customMode") != "OldSchool") 
 	{
-		loadDvar();
-		
 		setDvar("ui_gametype", getDvar("g_gametype"));	
-		setDvar("jump_slowdownEnable", getDvarInt("os_defaultJumpSlowValue"));
-		setDvar("jump_disableFallDamage", getDvar("os_defaultFallDamageValue"));
+		setDvar("jump_slowdownEnable", getDvarInt("lb_defaultJumpSlowValue"));
+		setDvar("jump_disableFallDamage", getDvarInt("lb_defaultFallDamageValue"));
 		return;
 	}
 	
@@ -24,8 +24,8 @@ init()
 	setDvar("jump_disableFallDamage", 1);	
 	
 	level waittill("game_ended");
-	setDvar("jump_slowdownEnable", getDvarInt("os_defaultJumpSlowValue"));	
-	setDvar("jump_disableFallDamage", getDvarInt("os_defaultFallDamageValue"));	
+	setDvar("jump_slowdownEnable", getDvarInt("lb_defaultJumpSlowValue"));
+	setDvar("jump_disableFallDamage", getDvarInt("lb_defaultFallDamageValue"));
 }
 
 loadDvar()
@@ -33,8 +33,10 @@ loadDvar()
 	SetDvarIfUninitialized("os_perks_enable", 1);
 	SetDvarIfUninitialized("os_equipment_enable", 1);
 	SetDvarIfUninitialized("os_camos_enable", 0);
-	SetDvarIfUninitialized("os_defaultJumpSlowValue", getDvarInt("jump_slowdownEnable"));
-	SetDvarIfUninitialized("os_defaultFallDamageValue", getDvarInt("os_defaultFallDamageValue"));
+	
+	SetDvarIfUninitialized("lb_customMode", 1);
+	SetDvarIfUninitialized("lb_defaultJumpSlowValue", getDvarInt("jump_slowdownEnable"));
+	SetDvarIfUninitialized("lb_defaultFallDamageValue", getDvarInt("jump_disableFallDamage"));
 }
 
 loadData()
