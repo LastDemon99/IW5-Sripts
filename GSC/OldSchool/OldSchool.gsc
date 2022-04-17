@@ -494,6 +494,7 @@ spawnTargets()
 			level.targets[zones_index[i]]["model"] setModel("weapon_scavenger_grenadebag");		
 			level.targets[zones_index[i]]["type"] = "perk";
 			level.targets[zones_index[i]]["item"] = level.os_perks[i];
+			level.targets[zones_index[i]]["model"].angles = (0, 0, 0);
 			
 			if(isDefined(level.targets[zones_index[i]]["scope"])) level.targets[zones_index[i]]["scope"] delete();	
 		}
