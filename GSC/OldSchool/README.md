@@ -33,7 +33,7 @@ perk.
 - Enable or disable spawn perks items
 	>os_perks_enable 
 
-- Enable or disable spawn perks items
+- Enable or disable spawn equipment items "lethal & tactical"
 	>os_equipment_enable 
 
 - Enable or disable random camos after get the weapon
