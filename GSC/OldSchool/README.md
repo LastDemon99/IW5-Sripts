@@ -29,6 +29,9 @@ perk.
 
 - Enable game mode, this option is because I plan to create more modes and then incorporate this into a voting or rotation
 	>lb_cutomMode "OldSchool"
+	
+- Set item time respawn 
+	>os_item_time 
 
 - Enable or disable spawn perks items
 	>os_perks_enable 
@@ -40,8 +43,8 @@ perk.
 	>os_camos_enable 
 
 - Indicate to the script which is the default value so that when it is not executed it changes it to this one.
-	>os_defaultJumpSlowValue 
-	>os_defaultFallDamageValue
+	>lb_defaultJumpSlowValue 
+	>lb_defaultFallDamageValue
 	
 # <a name="download"></a>Download
 - Download the .gsc file from the main repository.
