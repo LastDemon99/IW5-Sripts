@@ -11,6 +11,7 @@
   <a href="#download">Download</a> •  
   <a href="#game-modes">Game Modes</a> •
   <a href="#credits">Credits</a> •
+  <a href="#donate">Donate</a> •
 </p>
 
 # <a name="key-features"></a>Key Features
