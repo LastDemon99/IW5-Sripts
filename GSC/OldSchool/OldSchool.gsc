@@ -20,7 +20,7 @@ init()
 	level thread spawnTargets();	
 	level thread onPlayerConnect();
 	
-	setDvar( "jump_slowdownEnable", false );
+	setDvar("jump_slowdownEnable", 0);
 	setDvar("jump_disableFallDamage", 1);	
 	
 	level waittill("game_ended");
