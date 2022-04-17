@@ -556,10 +556,10 @@ onPlayerSpawn()
 		
 		self.os_perks = "";
 		
-		self disableWeaponPickup();		
-		self takeAllWeapons();		
 		self clearPerks();
 		self openMenu("perk_hide");		
+		self disableWeaponPickup();		
+		self takeAllWeapons();	
 		
 		_giveWeapon(level.os_primary);		
 		_giveWeapon(level.os_secondary); 
