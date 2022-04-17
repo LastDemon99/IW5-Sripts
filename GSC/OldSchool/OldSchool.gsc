@@ -32,6 +32,7 @@ init()
 
 loadDvar()
 {
+	SetDvarIfUninitialized("os_item_time", 25);
 	SetDvarIfUninitialized("os_perks_enable", 1);
 	SetDvarIfUninitialized("os_equipment_enable", 1);
 	SetDvarIfUninitialized("os_camos_enable", 0);
@@ -515,7 +516,7 @@ onUsedTarget(index)
 	level.targets[index]["fx"] = spawnFx(level.os_fx["enemy"], level.targets[index]["model"].origin - (0, 0, 40), level.forward_fx, level.right_fx);
 	triggerFx(level.targets[index]["fx"]);
 	
-	wait(25);
+	wait(getDvarInt("os_item_time"));
 	
 	if(isDefined(level.targets[index]["scope"])) level.targets[index]["scope"] show();	
 	level.targets[index]["model"] show();
