@@ -6,9 +6,11 @@ init()
 {
 	if(getDvar("lb_customMode") != "OldSchool") 
 	{
+		loadDvar();
+		
 		setDvar("ui_gametype", getDvar("g_gametype"));	
-		cmdexec("jump_slowdownEnable " + getDvar("os_defaultJumpSlowValue"));
-		cmdexec("jump_slowdownEnable " + getDvar("os_defaultFallDamageValue"));
+		setDvar("jump_slowdownEnable", getDvarInt("os_defaultJumpSlowValue"));
+		setDvar("jump_disableFallDamage", getDvar("os_defaultFallDamageValue"));
 		return;
 	}
 	
@@ -18,21 +20,26 @@ init()
 	level thread spawnTargets();	
 	level thread onPlayerConnect();
 	
-	cmdexec("jump_slowdownEnable 0");	
-	cmdexec("jump_disableFallDamage 1");	
+	setDvar( "jump_slowdownEnable", false );
+	setDvar("jump_disableFallDamage", 1);	
 	
 	level waittill("game_ended");
-	cmdexec("jump_slowdownEnable " + getDvar("os_defaultJumpSlowValue"));
-	cmdexec("jump_slowdownEnable " + getDvar("os_defaultFallDamageValue"));
+	setDvar("jump_slowdownEnable", getDvarInt("os_defaultJumpSlowValue"));	
+	setDvar("jump_disableFallDamage", getDvarInt("os_defaultFallDamageValue"));	
+}
+
+loadDvar()
+{
+	SetDvarIfUninitialized("os_perks_enable", 1);
+	SetDvarIfUninitialized("os_equipment_enable", 1);
+	SetDvarIfUninitialized("os_camos_enable", 0);
+	SetDvarIfUninitialized("os_defaultJumpSlowValue", getDvarInt("jump_slowdownEnable"));
+	SetDvarIfUninitialized("os_defaultFallDamageValue", getDvarInt("os_defaultFallDamageValue"));
 }
 
 loadData()
 {
-	setDvarIfNotInizialized("os_perks_enable", 1);
-	setDvarIfNotInizialized("os_equipment_enable", 1);
-	setDvarIfNotInizialized("os_camos_enable", 0);
-	setDvarIfNotInizialized("os_defaultJumpSlowValue", 1);
-	setDvarIfNotInizialized("os_defaultFallDamageValue", 0);
+	loadDvar();
 	
 	level.os_fx["neutral"] = loadFx("misc/ui_flagbase_gold");
 	level.os_fx["enemy"] = loadFx("misc/ui_flagbase_red");
@@ -954,11 +961,4 @@ weaponCamoAllowed(weapon)
 			break;
 		}
 	return allowed;
-}
-
-setDvarIfNotInizialized(dvar, value)
-{
-	result = getDvar(dvar);	
-	if(!isDefined(result) || result == "")
-		setDvar(dvar, value);
 }
