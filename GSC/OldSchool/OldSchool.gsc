@@ -6,13 +6,15 @@ init()
 {
 	loadDvar();
 	
-	if(getDvar("lb_customMode") != "OldSchool") 
+	customMode = checkMode(getDvar("lb_customMode"));	
+	if(!customMode["enable"])
 	{
 		setDvar("ui_gametype", getDvar("g_gametype"));	
 		setDvar("jump_slowdownEnable", getDvarInt("lb_defaultJumpSlowValue"));
 		setDvar("jump_disableFallDamage", getDvarInt("lb_defaultFallDamageValue"));
 		return;
 	}
+	else if (customMode["mode"] != "OldSchool") return;
 	
 	setDvar("ui_gametype", "Old School");		
 	loadData();	
@@ -963,4 +965,21 @@ weaponCamoAllowed(weapon)
 			break;
 		}
 	return allowed;
+}
+
+checkMode(mode)
+{
+	data = [];
+	customModes = [ "OldSchool", "SharpShooter", "Cranked", "Switch", "RandomSniper", "RandomShotgun", "RandomPistol", "HugeGunGame"];
+	data["enable"] = false;
+	
+	for(i = 0; i < customModes.size; i++)
+		if(mode == customModes[i])
+		{
+			data["enable"] = true;
+			data["mode"] = mode;
+			break;
+		}
+			
+	return data;
 }
