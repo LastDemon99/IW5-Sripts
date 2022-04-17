@@ -34,7 +34,7 @@ loadDvar()
 	SetDvarIfUninitialized("os_equipment_enable", 1);
 	SetDvarIfUninitialized("os_camos_enable", 0);
 	
-	SetDvarIfUninitialized("lb_customMode", 1);
+	SetDvarIfUninitialized("lb_customMode", "");
 	SetDvarIfUninitialized("lb_defaultJumpSlowValue", getDvarInt("jump_slowdownEnable"));
 	SetDvarIfUninitialized("lb_defaultFallDamageValue", getDvarInt("jump_disableFallDamage"));
 }
