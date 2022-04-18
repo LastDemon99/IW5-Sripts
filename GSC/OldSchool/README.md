@@ -44,6 +44,7 @@ perk.
 
 - Indicate to the script which is the default value so that when it is not executed it changes it to this one.
 	>lb_defaultJumpSlowValue 
+	
 	>lb_defaultFallDamageValue
 	
 # <a name="download"></a>Download
@@ -66,5 +67,4 @@ Other game modes you might be interested in:
 
 # <a name="donate"></a>Donate
 <a href="https://www.paypal.com/paypalme/lastdemon99/"><img src="https://github.com/LastDemon99/LastDemon99/blob/main/Data/paypal_dark.svg" height="40"></a>  
-If you liked this project and you want to collaborate for the creation of more you can donate here :3.
-That way I'll be able to afford a damn server, and be able to test better xD
+If you liked this project and you want to collaborate for the creation of more you can donate here :3
