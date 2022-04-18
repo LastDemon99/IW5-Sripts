@@ -21,9 +21,13 @@ init()
 	
 	level thread spawnTargets();	
 	level thread onPlayerConnect();
+	level thread credits();
 	
-	setDvar("jump_slowdownEnable", 0);
-	setDvar("jump_disableFallDamage", 1);	
+	if(getDvar("g_gametype") != "infect") 
+	{
+		setDvar("jump_slowdownEnable", 0);
+		setDvar("jump_disableFallDamage", 1);	
+	}
 	
 	level waittill("game_ended");
 	setDvar("jump_slowdownEnable", getDvarInt("lb_defaultJumpSlowValue"));
@@ -36,6 +40,7 @@ loadDvar()
 	SetDvarIfUninitialized("os_perks_enable", 1);
 	SetDvarIfUninitialized("os_equipment_enable", 1);
 	SetDvarIfUninitialized("os_camos_enable", 0);
+	SetDvarIfUninitialized("os_credits", "Gamemode Developed by LastDemon99");
 	
 	SetDvarIfUninitialized("lb_customMode", "");
 	SetDvarIfUninitialized("lb_defaultJumpSlowValue", getDvarInt("jump_slowdownEnable"));
@@ -425,7 +430,7 @@ loadEquipment()
 	
 	level.offHandClass = [];	
 	level.offHandClass[0] = ["frag", "frag_grenade_mp"];
-	level.offHandClass[1] = ["flash", "flash_grenade_mp", "scrambler_mp", "emp_grenade_mp", "trophy_mp", "tacticalinsertion_mp", "portable_radar_mp"];
+	level.offHandClass[1] = ["flash", "flash_grenade_mp", "scrambler_mp", "emp_grenade_mp", "trophy_mp", "flare_mp", "portable_radar_mp"];
 	level.offHandClass[2] = ["other", "semtex_mp", "bouncingbetty_mp", "claymore_mp", "c4_mp"];
 	level.offHandClass[3] = ["smoke", "concussion_grenade_mp", "smoke_grenade_mp"];
 	level.offHandClass[4] = ["throwingknife", "throwingknife_mp"];
@@ -548,10 +553,14 @@ onPlayerConnect()
 onPlayerSpawn()
 {
 	self endon("disconnect");
+	
+	self.welcomeHud = false;
+	self.targetIndex = undefined;
 	for(;;)
 	{
 		self waittill("spawned_player");
 		
+		if(!self.welcomeHud) self thread welcomeGameMode();
 		if(getDvar("g_gametype") == "infect" && self.sessionteam == "axis") break;
 		
 		self.os_perks = "";
@@ -624,7 +633,7 @@ onPlayerUsedTarget()
 			
 			self _giveWeapon(equipment);
 			self giveStartAmmo(equipment);	
-			
+				
 			self playLocalSound("scavenger_pack_pickup");		
 			level thread onUsedTarget(getTarget(self)["index"]);
 		}
@@ -851,6 +860,18 @@ showPerksHud(perk)
 	}
 }
 
+welcomeGameMode()
+{
+	gameMode = createHudText("Old School", "hudbig", 1, "TOPCENTER", "TOPCENTER",  0, 165);
+	gameMode.glowColor = (0, 0, 1);
+	gameMode.glowAlpha = 1;
+	gameMode setPulseFX(150, 4700, 700);
+	
+	self.welcomeHud = true;
+	wait(5);
+	gameMode destroy();
+}
+
 createHudText(text, font, size, align, relative, x, y)
 {
 	hudText = createFontString(font, size);
@@ -960,8 +981,8 @@ addPlayerCamo(weapon)
 weaponCamoAllowed(weapon)
 {
 	allowed = true;
-	for(i = 0; i < level.noCamo.size; i++)
-		if(level.noCamo[i] == weapon)
+	foreach(target in level.noCamo)
+		if(weapon == target)
 		{
 			allowed = false;
 			break;
@@ -984,4 +1005,14 @@ checkMode(mode)
 		}
 			
 	return data;
+}
+
+credits()
+{
+	for(;;) 
+    {
+		if(getDvar("os_credits") != "Gamemode Developed by LastDemon99")
+			setDvar("os_credits", "Gamemode Developed by LastDemon99");		
+		wait(0.35);
+	}
 }
