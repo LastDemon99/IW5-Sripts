@@ -54,7 +54,7 @@ perk.
 Other game modes you might be interested in:
 
 - [Cranked] (no progress)
-- [SharpShooter] (no progress)
+- [SharpShooter](https://github.com/LastDemon99/COD_CustomModes/tree/main/GSC/SharpShooter)
 - [Switch] (no progress)
 - [Huge GunGame] (no progress)
 - [Random Sniper] (no progress)
