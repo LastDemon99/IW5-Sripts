@@ -560,8 +560,8 @@ credits()
 {
 	for(;;) 
     {
-		if(getDvar("os_credits") != "Gamemode Developed by LastDemon99")
-			setDvar("os_credits", "Gamemode Developed by LastDemon99");		
+		if(getDvar("ss_credits") != "Gamemode Developed by LastDemon99")
+			setDvar("ss_credits", "Gamemode Developed by LastDemon99");		
 		wait(0.35);
 	}
 }
