@@ -16,6 +16,9 @@ init()
 	}
 	else if (customMode["mode"] != "SharpShooter") return;
 	
+	replacefunc(maps\mp\_utility::allowTeamChoice, ::teamChoice);
+	replacefunc(maps\mp\_utility::allowClassChoice, ::classChoice);
+	
 	setDvar("ui_gametype", "SharpShooter");			
 	loadWeaponData();
 	
@@ -63,6 +66,9 @@ modeInit()
 		level.ssTimer Destroy();
 		setWeapons();
 		
+		playSoundOnPlayers("mp_killconfirm_tags_pickup", "allies");
+		playSoundOnPlayers("mp_killconfirm_tags_pickup", "axis");
+		
 		foreach(player in level.players)
 		{
 			if(getDvar("g_gametype") == "infect" && player.sessionteam == "axis") continue;
@@ -77,7 +83,6 @@ onPlayerConnect()
   {
     level waittill("connected", player);	
 	
-	player thread selectAssign();
 	player thread stingerFire(); 
 	player thread infiniteStock();
 	player thread onPlayerSpawn();
@@ -137,31 +142,23 @@ ss_giveWeapon(weapon)
 	}
 }
 
-selectAssign()
+teamChoice()
 {
 	gametype = getDvar("g_gametype");	
 	
-	if (gametype == "dm" || gametype == "oitc")
+	if (gametype == "dm" || gametype == "oitc") return false;
+	else
 	{
-		for(;;)
-		{
-			self waittill("end_respawn");
-			
-			self closeMenus();
-			self notify("menuresponse", "team_marinesopfor", "autoassign");
-			
-			self waittill("joined_team");			
-			self thread maps\mp\gametypes\_menus::bypassClassChoice();	
-		}	
+		allowed = int( tableLookup( "mp/gametypesTable.csv", 0, level.gameType, 4 ) );
+		assert( isDefined( allowed ) );
+	
+		return allowed;
 	}
-	else if (gametype != "infect" && gametype != "gg")
-	{
-		for(;;)
-		{
-			self waittill("joined_team");
-			self thread maps\mp\gametypes\_menus::bypassClassChoice();	
-		}
-	}	
+}
+
+classChoice()
+{
+	return false;	
 }
 
 infiniteStock()
