@@ -544,9 +544,9 @@ onPlayerConnect()
 	player.hudMsg = player createHudText("", "hudbig", 0.6f, "CENTER", "CENTER", 0, -50);	
 	player notifyonplayercommand("select", "+activate");
 	
-	self.welcomeHud = false;
-	self.os_perks = "";
-	self.targetIndex = undefined;
+	player.welcomeHud = false;
+	player.os_perks = "";
+	player.targetIndex = undefined;
 	
 	player thread onPlayerSpawn();
 	player thread playerTrigger();
