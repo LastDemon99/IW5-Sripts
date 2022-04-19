@@ -16,6 +16,9 @@ init()
 	}
 	else if (customMode["mode"] != "OldSchool") return;
 	
+	replacefunc(maps\mp\_utility::allowTeamChoice, ::teamChoice);
+	replacefunc(maps\mp\_utility::allowClassChoice, ::classChoice);
+	
 	setDvar("ui_gametype", "Old School");		
 	loadData();	
 	
@@ -543,7 +546,6 @@ onPlayerConnect()
 	player.hudMsg = player createHudText("", "hudbig", 0.6f, "CENTER", "CENTER", 0, -50);	
 	player notifyonplayercommand("select", "+activate");
 	
-	player thread selectAssign();
 	player thread onPlayerSpawn();
 	player thread playerTrigger();
 	player thread stingerFire(); 
@@ -714,31 +716,23 @@ playerTrigger()
 	}
 }
 
-selectAssign()
+teamChoice()
 {
 	gametype = getDvar("g_gametype");	
 	
-	if (gametype == "dm" || gametype == "oitc")
+	if (gametype == "dm" || gametype == "oitc") return false;
+	else
 	{
-		for(;;)
-		{
-			self waittill("end_respawn");
-			
-			self closeMenus();
-			self notify("menuresponse", "team_marinesopfor", "autoassign");
-			
-			self waittill("joined_team");			
-			self thread maps\mp\gametypes\_menus::bypassClassChoice();	
-		}	
+		allowed = int( tableLookup( "mp/gametypesTable.csv", 0, level.gameType, 4 ) );
+		assert( isDefined( allowed ) );
+	
+		return allowed;
 	}
-	else if (gametype != "infect" && gametype != "gg")
-	{
-		for(;;)
-		{
-			self waittill("joined_team");
-			self thread maps\mp\gametypes\_menus::bypassClassChoice();	
-		}
-	}	
+}
+
+classChoice()
+{
+	return false;	
 }
 
 stingerFire()
