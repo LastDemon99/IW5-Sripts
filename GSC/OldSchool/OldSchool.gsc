@@ -541,10 +541,12 @@ onPlayerConnect()
   {
     level waittill("connected", player);	
 	
-	player.targetIndex = undefined;
-	
 	player.hudMsg = player createHudText("", "hudbig", 0.6f, "CENTER", "CENTER", 0, -50);	
 	player notifyonplayercommand("select", "+activate");
+	
+	self.welcomeHud = false;
+	self.os_perks = "";
+	self.targetIndex = undefined;
 	
 	player thread onPlayerSpawn();
 	player thread playerTrigger();
@@ -556,8 +558,6 @@ onPlayerSpawn()
 {
 	self endon("disconnect");
 	
-	self.welcomeHud = false;
-	self.targetIndex = undefined;
 	for(;;)
 	{
 		self waittill("spawned_player");
@@ -566,6 +566,7 @@ onPlayerSpawn()
 		if(getDvar("g_gametype") == "infect" && self.sessionteam == "axis") break;
 		
 		self.os_perks = "";
+		self.targetIndex = undefined;
 		
 		self clearPerks();
 		self openMenu("perk_hide");		
@@ -668,6 +669,8 @@ onPlayerUsedTarget()
 
 playerTrigger()
 {
+	self waittill("spawned_player");
+	
 	for(;;)
 	{
 		if (!isAlive(self) || (getDvar("g_gametype") == "infect" && !level.infect_choseFirstInfected))
