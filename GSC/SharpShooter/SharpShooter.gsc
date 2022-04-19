@@ -542,25 +542,6 @@ contains(item, data)
 	return _contains;
 }
 
-randomNum(size, min, max)
-{
-	uniqueArray = [size];
-	random = 0;
-
-	for (i = 0; i < size; i++)
-	{
-		random = randomIntRange(min, max);
-		for (j = i; j >= 0; j--)
-			if (isDefined(uniqueArray[j]) && uniqueArray[j] == random)
-			{
-				random = randomIntRange(min, max);
-				j = i;
-			}
-		uniqueArray[i] = random;
-	}
-	return uniqueArray;
-}
-
 checkMode(mode)
 {
 	data = [];
