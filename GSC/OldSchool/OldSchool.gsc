@@ -386,12 +386,12 @@ loadWeapons()
 	weaponsData[30] = ["iw5_pecheneg_mp", "viewmodel_pecheneg_iw5"];
 	weaponsData[31] = ["iw5_sa80_mp", "weapon_sa80_iw5"];
 	weaponsData[32] = ["iw5_mg36_mp", "viewmodel_mg36"];
-	weaponsData[33] = ["iw5_44magnum_mp", "weapon_44_magnum_iw5"];
-	weaponsData[34] = ["iw5_usp45_mp", "weapon_usp45_iw5"]; //no view_
-	weaponsData[35] = ["iw5_deserteagle_mp", "weapon_desert_eagle_iw5"];
-	weaponsData[36] = ["iw5_mp412_mp", "weapon_mp412"];
-	weaponsData[37] = ["iw5_p99_mp", "weapon_walther_p99_iw5"];
-	weaponsData[38] = ["iw5_fnfiveseven_mp", "weapon_fn_fiveseven_iw5"];
+	weaponsData[33] = ["iw5_44magnum_mp", "viewmodel_44_magnum_iw5"];
+	weaponsData[34] = ["iw5_usp45_mp", "viewmodel_usp45_iw5"]; //no view_
+	weaponsData[35] = ["iw5_deserteagle_mp", "viewmodel_desert_eagle_iw5"];
+	weaponsData[36] = ["iw5_mp412_mp", "viewmodel_mp412"];
+	weaponsData[37] = ["iw5_p99_mp", "viewmodel_walther_p99_iw5"];
+	weaponsData[38] = ["iw5_fnfiveseven_mp", "viewmodel_fn_five_seven_iw5"];
 	weaponsData[39] = ["iw5_g18_mp", "viewmodel_g18_iw5"];
 	weaponsData[40] = ["iw5_fmg9_mp", "viewmodel_fmg_iw5"];
 	weaponsData[41] = ["iw5_mp9_mp", "viewmodel_mp9_iw5"];
@@ -403,6 +403,7 @@ loadWeapons()
 	weaponsData[47] = ["xm25_mp", "viewmodel_xm25"];
 	weaponsData[48] = ["riotshield_mp", "weapon_riot_shield_mp"];
 	weaponsData[49] = ["iw5_ak74u_mp", "viewmodel_ak74u_iw5"];
+	weaponsData[50] = ["iw5_cheytac_mp_cheytacscopevz", "weapon_cheytac_no_attach"];
 	
 	level.noCamo = ["iw5_44magnum_mp", "iw5_usp45_mp", "iw5_deserteagle_mp", "iw5_mp412_mp", "iw5_p99_mp", "iw5_fnfiveseven_mp", "iw5_g18_mp", "iw5_fmg9_mp", "iw5_mp9_mp", "iw5_skorpion_mp", "m320_mp", "rpg_mp", "iw5_smaw_mp", "stinger_mp", "xm25_mp", "javelin_mp", "iw5_m60jugg_mp", "iw5_riotshieldjugg_mp", "riotshield_mp"];
 	
@@ -411,6 +412,13 @@ loadWeapons()
 	wep_index = randomNum(level.os_zones.size, 0, weaponsData.size);
 	for (i = 0; i < wep_index.size; i++)
 		level.os_weapons[i] = weaponsData[wep_index[i]];
+	
+	level.os_pistols = ["iw5_44magnum_mp",
+					   "iw5_usp45_mp",
+					   "iw5_deserteagle_mp",
+					   "iw5_mp412_mp",
+					   "iw5_p99_mp",
+					   "iw5_fnfiveseven_mp"];		
 }
 
 loadEquipment()
@@ -471,8 +479,10 @@ spawnTargets()
 		level.targets[i]["neutral"] = true;		
 		level.targets[i]["index"] = i;		
 		
-		if(getWeaponClass(level.os_weapons[i][0]) == "weapon_sniper")
+		if(getWeaponClass(level.os_weapons[i][0]) == "weapon_sniper" || level.os_weapons[i][0] == "iw5_cheytac_mp_cheytacscopevz")
 			level.targets[i]["scope"] = spawnScopeSniper(level.targets[i]["model"]);
+		
+		if(contains(level.os_weapons[i][0], level.os_pistols)) level.targets[i]["model"] HidePart("tag_knife");
 		
 		wait(0.1);
 	}	
@@ -927,6 +937,10 @@ spawnScopeSniper(ent_model)
 			pos += (0.5, 0, 3.5);
 			model = "viewmodel_as50_scope_iw5";
 			break;
+		case "weapon_cheytac_no_attach":
+			pos += (-4, 0, 3.65);
+			model = "viewmodel_cheytac_scope";
+			break;
 	}
 	
 	scopedSniper = spawn("script_model", pos);
@@ -1002,6 +1016,18 @@ checkMode(mode)
 		}
 			
 	return data;
+}
+
+contains(item, data)
+{
+	_contains = false;
+	foreach(i in data)
+		if(item == i)
+		{
+			_contains = true;
+			break;
+		}
+	return _contains;
 }
 
 credits()
