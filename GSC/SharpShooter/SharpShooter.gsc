@@ -67,10 +67,7 @@ modeInit()
 		setWeapons();
 		
 		foreach(team in ["axis", "allies"])
-		{
-			//playSoundOnPlayers("mp_suitcase_pickup", team);
 			playSoundOnPlayers("scavenger_pack_pickup", team);
-		}
 		
 		foreach(player in level.players)
 		{
