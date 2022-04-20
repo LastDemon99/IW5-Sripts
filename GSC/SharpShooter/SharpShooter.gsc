@@ -66,8 +66,11 @@ modeInit()
 		level.ssTimer Destroy();
 		setWeapons();
 		
-		playSoundOnPlayers("mp_killconfirm_tags_pickup", "allies");
-		playSoundOnPlayers("mp_killconfirm_tags_pickup", "axis");
+		foreach(team in ["axis", "allies"])
+		{
+			//playSoundOnPlayers("mp_suitcase_pickup", team);
+			playSoundOnPlayers("scavenger_pack_pickup", team);
+		}
 		
 		foreach(player in level.players)
 		{
@@ -196,7 +199,6 @@ giveAllPerks()
 {
 	self givePerk("specialty_longersprint", false);
 	self givePerk("specialty_fastreload", false);
-	self givePerk("specialty_scavenger", false);
 	self givePerk("specialty_blindeye", false);
 	self givePerk("specialty_paint", false);
 	self givePerk("specialty_hardline", false);
@@ -341,41 +343,41 @@ loadWeaponData()
 	level.ss_lethal = undefined;
 	level.ss_tactical = undefined;	
 	
-	level.ss_attachs = ["reflex", "silencer", "m320", "acog", "heartbeat", "eotech", "shotgun", "hybrid", "xmags", "thermal", "rof", "gl", "gp25", "reflexsmg", "acogsmg", "eotechsmg", "hamrhybrid", "thermalsmg", "grip", "silencer03", "reflexlmg", "eotechlmg", "barrettscopevz", "msrscopevz", "rsassscopevz", "dragunovscopevz", "as50scopevz", "l96a1scopevz", "silencer02", "akimbo", "tactical"];
+	level.ss_attachs = ["reflex", "silencer", "m320", "acog", "heartbeat", "eotech", "shotgun", "hybrid", "xmags", "thermal", "rof", "gl", "gp25", "reflexsmg", "acogsmg", "eotechsmg", "hamrhybrid", "thermalsmg", "grip", "silencer03", "reflexlmg", "eotechlmg", "barrettscopevz", "msrscopevz", "rsassscopevz", "dragunovscopevz", "as50scopevz", "l96a1scopevz", "cheytacscopevz", "silencer02", "akimbo", "tactical"];
 	
 	level.ss_noCamoWeapons = ["iw5_44magnum_mp", "iw5_usp45_mp", "iw5_deserteagle_mp", "iw5_mp412_mp", "iw5_p99_mp", "iw5_fnfiveseven_mp", "iw5_g18_mp", "iw5_fmg9_mp", "iw5_mp9_mp", "iw5_skorpion_mp", "m320_mp", "rpg_mp", "iw5_smaw_mp", "stinger_mp", "xm25_mp", "javelin_mp", "iw5_m60jugg_mp", "iw5_riotshieldjugg_mp", "riotshield_mp"];
 	
 	level.ss_silencer = ["silencer", "silencer03", "silencer02"];
 	
-	level.ss_sights = ["reflex", "reflexsmg", "acog", "eotech", "reflexlmg", "reflexsmg", "eotechsmg", "eotechlmg", "acogsmg", "thermalsmg", "hamrhybrid", "barrettscopevz", "as50scopevz", "l96a1scopevz", "msrscopevz", "dragunovscopevz", "rsassscopevz", "thermal", "hybrid"];
+	level.ss_sights = ["reflex", "reflexsmg", "acog", "eotech", "reflexlmg", "reflexsmg", "eotechsmg", "eotechlmg", "acogsmg", "thermalsmg", "hamrhybrid", "barrettscopevz", "as50scopevz", "l96a1scopevz", "cheytacscopevz", "msrscopevz", "dragunovscopevz", "rsassscopevz", "thermal", "hybrid"];
 		
 	level.ss_extraAttach = ["heartbeat", "xmags", "rof", "grip", "akimbo", "tactical"];
 	
 	level.ss_extraAttach2 = ["gl", "gp25", "m320", "shotgun"];
 	
-	level.ss_snipers = ["iw5_barrett_mp", "iw5_rsass_mp", "iw5_dragunov_mp", "iw5_msr_mp", "iw5_l96a1_mp", "iw5_as50_mp"];
+	level.ss_snipers = ["iw5_barrett_mp", "iw5_rsass_mp", "iw5_dragunov_mp", "iw5_msr_mp", "iw5_l96a1_mp", "iw5_as50_mp", "iw5_cheytac_mp"];
 	
 	level.ss_allowedAttach = [];
 	level.ss_allowedAttach["reflex"] = ["iw5_acr_mp", "iw5_type95_mp", "iw5_m4_mp", "iw5_ak47_mp", "iw5_m16_mp", "iw5_mk14_mp", "iw5_g36c_mp", "iw5_scar_mp", "iw5_fad_mp", "iw5_cm901_mp", "iw5_spas12_mp", "iw5_aa12_mp", "iw5_striker_mp", "iw5_usas12_mp", "iw5_ksg_mp"];
-	level.ss_allowedAttach["silencer"] = ["iw5_acr_mp", "iw5_type95_mp", "iw5_m4_mp", "iw5_ak47_mp", "iw5_m16_mp", "iw5_mk14_mp", "iw5_g36c_mp", "iw5_scar_mp", "iw5_fad_mp", "iw5_cm901_mp", "iw5_mp5_mp", "iw5_p90_mp", "iw5_m9_mp", "iw5_pp90m1_mp", "iw5_ump45_mp", "iw5_mp7_mp", "iw5_m60_mp", "iw5_mk46_mp", "iw5_pecheneg_mp", "iw5_sa80_mp", "iw5_mg36_mp"];
+	level.ss_allowedAttach["silencer"] = ["iw5_acr_mp", "iw5_type95_mp", "iw5_m4_mp", "iw5_ak47_mp", "iw5_m16_mp", "iw5_mk14_mp", "iw5_g36c_mp", "iw5_scar_mp", "iw5_fad_mp", "iw5_cm901_mp", "iw5_mp5_mp", "iw5_ak74u_mp","iw5_p90_mp", "iw5_m9_mp", "iw5_pp90m1_mp", "iw5_ump45_mp", "iw5_mp7_mp", "iw5_m60_mp", "iw5_mk46_mp", "iw5_pecheneg_mp", "iw5_sa80_mp", "iw5_mg36_mp"];
 	level.ss_allowedAttach["m320"] = ["iw5_acr_mp", "iw5_type95_mp", "iw5_g36c_mp", "iw5_scar_mp", "iw5_fad_mp", "iw5_cm901_mp"];
-	level.ss_allowedAttach["acog"] = ["iw5_acr_mp", "iw5_type95_mp", "iw5_m4_mp", "iw5_ak47_mp", "iw5_m16_mp", "iw5_mk14_mp", "iw5_g36c_mp", "iw5_scar_mp", "iw5_fad_mp", "iw5_cm901_mp", "iw5_m60_mp", "iw5_mk46_mp", "iw5_pecheneg_mp", "iw5_sa80_mp", "iw5_mg36_mp", "iw5_barrett_mp", "iw5_msr_mp", "iw5_rsass_mp", "iw5_dragunov_mp", "iw5_as50_mp", "iw5_l96a1_mp"];
-	level.ss_allowedAttach["heartbeat"] = ["iw5_acr_mp", "iw5_type95_mp", "iw5_m4_mp", "iw5_ak47_mp", "iw5_m16_mp", "iw5_mk14_mp", "iw5_g36c_mp", "iw5_scar_mp", "iw5_fad_mp", "iw5_cm901_mp", "iw5_mk46_mp", "iw5_sa80_mp", "iw5_mg36_mp", "iw5_barrett_mp", "iw5_msr_mp", "iw5_rsass_mp", "iw5_dragunov_mp", "iw5_as50_mp", "iw5_l96a1_mp"];
+	level.ss_allowedAttach["acog"] = ["iw5_acr_mp", "iw5_type95_mp", "iw5_m4_mp", "iw5_ak47_mp", "iw5_m16_mp", "iw5_mk14_mp", "iw5_g36c_mp", "iw5_scar_mp", "iw5_fad_mp", "iw5_cm901_mp", "iw5_m60_mp", "iw5_mk46_mp", "iw5_pecheneg_mp", "iw5_sa80_mp", "iw5_mg36_mp", "iw5_barrett_mp", "iw5_msr_mp", "iw5_rsass_mp", "iw5_dragunov_mp", "iw5_as50_mp", "iw5_l96a1_mp", "iw5_cheytac_mp"];
+	level.ss_allowedAttach["heartbeat"] = ["iw5_acr_mp", "iw5_type95_mp", "iw5_m4_mp", "iw5_ak47_mp", "iw5_m16_mp", "iw5_mk14_mp", "iw5_g36c_mp", "iw5_scar_mp", "iw5_fad_mp", "iw5_cm901_mp", "iw5_mk46_mp", "iw5_sa80_mp", "iw5_mg36_mp", "iw5_barrett_mp", "iw5_msr_mp", "iw5_rsass_mp", "iw5_dragunov_mp", "iw5_as50_mp", "iw5_l96a1_mp", "iw5_cheytac_mp"];
 	level.ss_allowedAttach["eotech"] = ["iw5_acr_mp", "iw5_type95_mp", "iw5_m4_mp", "iw5_ak47_mp", "iw5_m16_mp", "iw5_mk14_mp", "iw5_g36c_mp", "iw5_scar_mp", "iw5_fad_mp", "iw5_cm901_mp", "iw5_spas12_mp", "iw5_aa12_mp", "iw5_striker_mp", "iw5_usas12_mp", "iw5_ksg_mp"];
 	level.ss_allowedAttach["shotgun"] = ["iw5_acr_mp", "iw5_type95_mp", "iw5_m4_mp", "iw5_ak47_mp", "iw5_m16_mp", "iw5_mk14_mp", "iw5_g36c_mp", "iw5_scar_mp", "iw5_fad_mp", "iw5_cm901_mp"];
 	level.ss_allowedAttach["hybrid"] = ["iw5_acr_mp", "iw5_type95_mp", "iw5_m4_mp", "iw5_ak47_mp", "iw5_m16_mp", "iw5_mk14_mp", "iw5_g36c_mp", "iw5_scar_mp", "iw5_fad_mp", "iw5_cm901_mp"];
-	level.ss_allowedAttach["xmags"] = ["iw5_acr_mp", "iw5_type95_mp", "iw5_m4_mp", "iw5_ak47_mp", "iw5_m16_mp", "iw5_mk14_mp", "iw5_g36c_mp", "iw5_scar_mp", "iw5_fad_mp", "iw5_cm901_mp", "iw5_mp5_mp", "iw5_p90_mp", "iw5_m9_mp", "iw5_pp90m1_mp", "iw5_ump45_mp", "iw5_mp7_mp", "iw5_spas12_mp", "iw5_aa12_mp", "iw5_striker_mp", "iw5_usas12_mp", "iw5_ksg_mp", "iw5_m60_mp", "iw5_mk46_mp", "iw5_pecheneg_mp", "iw5_sa80_mp", "iw5_mg36_mp", "iw5_barrett_mp", "iw5_msr_mp", "iw5_rsass_mp", "iw5_dragunov_mp", "iw5_as50_mp", "iw5_l96a1_mp", "iw5_usp45_mp", "iw5_p99_mp", "iw5_fnfiveseven_mp", "iw5_fmg9_mp", "iw5_g18_mp", "iw5_mp9_mp", "iw5_skorpion_mp"];
-	level.ss_allowedAttach["thermal"] = ["iw5_acr_mp", "iw5_type95_mp", "iw5_m4_mp", "iw5_ak47_mp", "iw5_m16_mp", "iw5_mk14_mp", "iw5_g36c_mp", "iw5_scar_mp", "iw5_fad_mp", "iw5_cm901_mp", "iw5_m60_mp", "iw5_mk46_mp", "iw5_pecheneg_mp", "iw5_sa80_mp", "iw5_mg36_mp", "iw5_barrett_mp", "iw5_msr_mp", "iw5_rsass_mp", "iw5_dragunov_mp", "iw5_as50_mp", "iw5_l96a1_mp"];
-	level.ss_allowedAttach["rof"] = ["iw5_type95_mp", "iw5_m16_mp", "iw5_mk14_mp", "iw5_mp5_mp", "iw5_p90_mp", "iw5_m9_mp", "iw5_pp90m1_mp", "iw5_ump45_mp", "iw5_mp7_mp", "iw5_m60_mp", "iw5_mk46_mp", "iw5_pecheneg_mp", "iw5_sa80_mp", "iw5_mg36_mp"];
+	level.ss_allowedAttach["xmags"] = ["iw5_acr_mp", "iw5_type95_mp", "iw5_m4_mp", "iw5_ak47_mp", "iw5_m16_mp", "iw5_mk14_mp", "iw5_g36c_mp", "iw5_scar_mp", "iw5_fad_mp", "iw5_cm901_mp", "iw5_mp5_mp", "iw5_ak74u_mp", "iw5_p90_mp", "iw5_m9_mp", "iw5_pp90m1_mp", "iw5_ump45_mp", "iw5_mp7_mp", "iw5_spas12_mp", "iw5_aa12_mp", "iw5_striker_mp", "iw5_usas12_mp", "iw5_ksg_mp", "iw5_m60_mp", "iw5_mk46_mp", "iw5_pecheneg_mp", "iw5_sa80_mp", "iw5_mg36_mp", "iw5_barrett_mp", "iw5_msr_mp", "iw5_rsass_mp", "iw5_dragunov_mp", "iw5_as50_mp", "iw5_l96a1_mp", "iw5_cheytac_mp", "iw5_usp45_mp", "iw5_p99_mp", "iw5_fnfiveseven_mp", "iw5_fmg9_mp", "iw5_g18_mp", "iw5_mp9_mp", "iw5_skorpion_mp"];
+	level.ss_allowedAttach["thermal"] = ["iw5_acr_mp", "iw5_type95_mp", "iw5_m4_mp", "iw5_ak47_mp", "iw5_m16_mp", "iw5_mk14_mp", "iw5_g36c_mp", "iw5_scar_mp", "iw5_fad_mp", "iw5_cm901_mp", "iw5_m60_mp", "iw5_mk46_mp", "iw5_pecheneg_mp", "iw5_sa80_mp", "iw5_mg36_mp", "iw5_barrett_mp", "iw5_msr_mp", "iw5_rsass_mp", "iw5_dragunov_mp", "iw5_as50_mp", "iw5_l96a1_mp", "iw5_cheytac_mp"];
+	level.ss_allowedAttach["rof"] = ["iw5_type95_mp", "iw5_m16_mp", "iw5_mk14_mp", "iw5_mp5_mp", "iw5_ak74u_mp", "iw5_p90_mp", "iw5_m9_mp", "iw5_pp90m1_mp", "iw5_ump45_mp", "iw5_mp7_mp", "iw5_m60_mp", "iw5_mk46_mp", "iw5_pecheneg_mp", "iw5_sa80_mp", "iw5_mg36_mp"];
 	level.ss_allowedAttach["gl"] = ["iw5_m4_mp", "iw5_m16_mp"];
 	level.ss_allowedAttach["gp25"] = ["iw5_ak47_mp"];
-	level.ss_allowedAttach["reflexsmg"] = ["iw5_mp5_mp", "iw5_p90_mp", "iw5_m9_mp", "iw5_pp90m1_mp", "iw5_ump45_mp", "iw5_mp7_mp", "iw5_fmg9_mp", "iw5_g18_mp", "iw5_mp9_mp", "iw5_skorpion_mp"];
-	level.ss_allowedAttach["acogsmg"] = ["iw5_mp5_mp", "iw5_p90_mp", "iw5_m9_mp", "iw5_pp90m1_mp", "iw5_ump45_mp", "iw5_mp7_mp"];
-	level.ss_allowedAttach["eotechsmg"] = ["iw5_mp5_mp", "iw5_p90_mp", "iw5_m9_mp", "iw5_pp90m1_mp", "iw5_ump45_mp", "iw5_mp7_mp"];
-	level.ss_allowedAttach["hamrhybrid"] = ["iw5_mp5_mp", "iw5_p90_mp", "iw5_m9_mp", "iw5_pp90m1_mp", "iw5_ump45_mp", "iw5_mp7_mp"];
-	level.ss_allowedAttach["thermalsmg"] = ["iw5_mp5_mp", "iw5_p90_mp", "iw5_m9_mp", "iw5_pp90m1_mp", "iw5_ump45_mp", "iw5_mp7_mp"];
+	level.ss_allowedAttach["reflexsmg"] = ["iw5_mp5_mp", "iw5_ak74u_mp", "iw5_p90_mp", "iw5_m9_mp", "iw5_pp90m1_mp", "iw5_ump45_mp", "iw5_mp7_mp", "iw5_fmg9_mp", "iw5_g18_mp", "iw5_mp9_mp", "iw5_skorpion_mp"];
+	level.ss_allowedAttach["acogsmg"] = ["iw5_mp5_mp", "iw5_ak74u_mp","iw5_p90_mp", "iw5_m9_mp", "iw5_pp90m1_mp", "iw5_ump45_mp", "iw5_mp7_mp"];
+	level.ss_allowedAttach["eotechsmg"] = ["iw5_mp5_mp", "iw5_ak74u_mp","iw5_p90_mp", "iw5_m9_mp", "iw5_pp90m1_mp", "iw5_ump45_mp", "iw5_mp7_mp"];
+	level.ss_allowedAttach["hamrhybrid"] = ["iw5_mp5_mp", "iw5_ak74u_mp", "iw5_p90_mp", "iw5_m9_mp", "iw5_pp90m1_mp", "iw5_ump45_mp", "iw5_mp7_mp"];
+	level.ss_allowedAttach["thermalsmg"] = ["iw5_mp5_mp", "iw5_ak74u_mp", "iw5_p90_mp", "iw5_m9_mp", "iw5_pp90m1_mp", "iw5_ump45_mp", "iw5_mp7_mp"];
 	level.ss_allowedAttach["grip"] = ["iw5_spas12_mp", "iw5_aa12_mp", "iw5_striker_mp", "iw5_usas12_mp", "iw5_ksg_mp", "iw5_m60_mp", "iw5_mk46_mp", "iw5_pecheneg_mp", "iw5_sa80_mp", "iw5_mg36_mp"];
-	level.ss_allowedAttach["silencer03"] = ["iw5_spas12_mp", "iw5_aa12_mp", "iw5_striker_mp", "iw5_usas12_mp", "iw5_ksg_mp", "iw5_barrett_mp", "iw5_msr_mp", "iw5_rsass_mp", "iw5_dragunov_mp", "iw5_as50_mp", "iw5_l96a1_mp"];
+	level.ss_allowedAttach["silencer03"] = ["iw5_spas12_mp", "iw5_aa12_mp", "iw5_striker_mp", "iw5_usas12_mp", "iw5_ksg_mp", "iw5_barrett_mp", "iw5_msr_mp", "iw5_rsass_mp", "iw5_dragunov_mp", "iw5_as50_mp", "iw5_l96a1_mp", "iw5_cheytac_mp"];
 	level.ss_allowedAttach["reflexlmg"] = ["iw5_m60_mp", "iw5_mk46_mp", "iw5_pecheneg_mp", "iw5_sa80_mp", "iw5_mg36_mp"];
 	level.ss_allowedAttach["eotechlmg"] = ["iw5_m60_mp", "iw5_mk46_mp", "iw5_pecheneg_mp", "iw5_sa80_mp", "iw5_mg36_mp"];
 	level.ss_allowedAttach["barrettscopevz"] = ["iw5_barrett_mp"];
@@ -384,6 +386,7 @@ loadWeaponData()
 	level.ss_allowedAttach["dragunovscopevz"] = ["iw5_dragunov_mp"];
 	level.ss_allowedAttach["as50scopevz"] = ["iw5_as50_mp"];
 	level.ss_allowedAttach["l96a1scopevz"] = ["iw5_l96a1_mp"];
+	level.ss_allowedAttach["cheytacscopevz"] = ["iw5_cheytac_mp"];
 	level.ss_allowedAttach["silencer02"] = ["iw5_usp45_mp", "iw5_p99_mp", "iw5_fnfiveseven_mp", "iw5_fmg9_mp", "iw5_g18_mp", "iw5_mp9_mp", "iw5_skorpion_mp"];
 	level.ss_allowedAttach["akimbo"] = ["iw5_usp45_mp", "iw5_mp412_mp", "iw5_44magnum_mp", "iw5_deserteagle_mp", "iw5_p99_mp", "iw5_fnfiveseven_mp", "iw5_fmg9_mp", "iw5_g18_mp", "iw5_mp9_mp", "iw5_skorpion_mp"];
 	level.ss_allowedAttach["tactical"] = ["iw5_usp45_mp", "iw5_mp412_mp", "iw5_44magnum_mp", "iw5_deserteagle_mp", "iw5_p99_mp", "iw5_fnfiveseven_mp"];
@@ -403,12 +406,14 @@ loadWeaponData()
 							   "iw5_p90_mp",
 							   "iw5_pp90m1_mp",
 							   "iw5_ump45_mp",
+							   "iw5_ak74u_mp",
 							   "iw5_barrett_mp",
 							   "iw5_rsass_mp",
 							   "iw5_dragunov_mp",
 							   "iw5_msr_mp",
 							   "iw5_l96a1_mp",
 							   "iw5_as50_mp",
+							   "iw5_cheytac_mp",
 							   "iw5_ksg_mp",
 							   "iw5_1887_mp",
 							   "iw5_striker_mp",
