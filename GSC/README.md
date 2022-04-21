@@ -1,2 +1,3 @@
-# COD_CustomModes
-GSC scripts for private games or a server in plutonium
+# GSC scripts for a Plutonium server 
+
+//Currently under development and updated
