@@ -48,7 +48,7 @@ perk.
 	>lb_defaultFallDamageValue
 	
 # <a name="download"></a>Download
-- Download the .gsc file from the main repository.
+- Download v0.1.8 pre-release: [OldSchool](https://github.com/LastDemon99/COD_CustomModes/releases/download/v0.1.8/OldSchool.gsc)
 
 # <a name="game-modes"></a>Game Modes
 Other game modes you might be interested in:
