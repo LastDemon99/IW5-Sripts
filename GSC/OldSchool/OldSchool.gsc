@@ -1,3 +1,14 @@
+/*
+============================
+|   Lethal Beats Team	   |
+============================
+|Game : IW5                |
+|Script : OldSchool        |
+|Creator : LastDemon99	   |
+|Type : Game Mode          |
+============================
+*/
+
 #include common_scripts\utility;
 #include maps\mp\_utility;
 #include maps\mp\gametypes\_hud_util;
