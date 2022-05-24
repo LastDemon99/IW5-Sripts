@@ -1,3 +1,14 @@
+/*
+============================
+|   Lethal Beats Team	   |
+============================
+|Game : IW5                |
+|Script : SharpShooter     |
+|Creator : LastDemon99	   |
+|Type : Addon              |
+============================
+*/
+
 #include common_scripts\utility;
 #include maps\mp\_utility;
 #include maps\mp\gametypes\_hud_util;
