@@ -5,7 +5,7 @@
 |Game : IW5                |
 |Script : SharpShooter     |
 |Creator : LastDemon99	   |
-|Type : Addon              |
+|Type : Game Mode          |
 ============================
 */
 
