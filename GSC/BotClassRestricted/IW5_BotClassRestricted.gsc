@@ -190,7 +190,7 @@ loadData()
 		
 		foreach(team in ["allies", "axis"])
 		{
-			maxIndex = getDvar("g_gametype") == "tjugg" ? 5 : 6;
+			maxIndex = getDvar("g_gametype") == "tjugg" || getDvar("g_gametype") == "sd" || getDvar("g_gametype") == "sab" || getDvar("g_gametype") == "ctf" || getDvar("g_gametype") == "tdef" ? 5 : 6;
 			for(i = 0; i < maxIndex; i++)
 			{
 				if (getMatchRulesData("defaultClasses", team, i, "class", "inUse"))
