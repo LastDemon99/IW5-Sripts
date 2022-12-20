@@ -33,11 +33,11 @@
 	
 	>cr_streaks
 
-- You can check the name of the items here: [Data](https://github.com/LastDemon99/IW5_ClassReplace/tree/main/Data)
+- You can check the name of the items here: [Data](https://github.com/LastDemon99/IW5_Sripts/tree/main/GSC/ClassReplace/Data)
 - [VIDEO OF SCRIPT PREVIEW](https://www.youtube.com/watch?v=RPKfGufpX6M)
 
 # <a name="download"></a>Download
-- Download pre-release v0.1.0: [IW5_ClassReplace](https://github.com/LastDemon99/IW5_ClassReplace/releases/download/0.1.0/IW5_ClassReplace.gsc)
+- Download v0.1: [IW5_ClassReplace](https://github.com/LastDemon99/IW5_Sripts/releases/download/v0.1/IW5_ClassReplace.gsc)
 
 # <a name="credits"></a>Credits
 - LethalBeats Team
@@ -46,5 +46,3 @@
 # <a name="sponsor"></a>Sponsor
 <a href="https://www.patreon.com/RandomScriptsIW5"><img src="https://github.com/LastDemon99/LastDemon99/blob/main/Data/patreon_dark.png" height="60"></a>
 <a href="https://www.paypal.com/paypalme/lastdemon99/"><img src="https://github.com/LastDemon99/LastDemon99/blob/main/Data/paypal_dark.svg" height="60"></a>
-
-if you want to help me create more content and have access and preview in advance, support me in patreon or donate donate via PayPal :3
