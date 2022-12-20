@@ -15,7 +15,7 @@
 - This script will apply class restrictions for iw5 bots, based on dsr and game mode.
 - If custom classes are allowed, the script block items that are restricted in the dsr.
 - If no custom classes are allowed, the script assigns the bot a random class based on the ones defaulted by the dsr.
-- Depending on the mode, the special classes will be checked, the classes errors of infected, gungame, oic, jugg will be solved
+- Depending on the mode, the special classes will be checked, the classes errors of infected, gungame, oic, jugg will be fixed.
 
 # <a name="how-to-use"></a>How To Use
 - Place the script file at "%localappdata%/plutonium/storage/iw5/scripts" if the folder does not exist, create it
