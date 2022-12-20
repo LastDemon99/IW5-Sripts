@@ -1,0 +1,11 @@
+weapon_assault,weapon_smg,weapon_lmg,weapon_sniper,weapon_shotgun,weapon_riot,weapon_machine_pistol,weapon_pistol,weapon_projectile,,m320,rof,gl,gp25,scopevz
+none,none,none,none,none,none,none,none,none,,iw5_acr,iw5_type95,iw5_m4,iw5_ak47,barrettscopevz
+silencer,silencer,silencer,silencer03,silencer03,,silencer02,silencer02,silencer02,,iw5_type95,iw5_m16,iw5_m16,,msrscopevz
+reflex,reflexsmg,acog,acog,reflex,,reflexsmg,xmags,xmags,,iw5_g36c,iw5_mk14,,,rsassscopevz
+acog,acogsmg,reflexlmg,heartbeat,eotech,,xmags,akimbo,akimbo,,iw5_scar,,,,dragunovscopevz
+eotech,eotechsmg,eotechlmg,xmags,xmags,,akimbo,tactical,tactical,,iw5_fad,,,,as50scopevz
+hybrid,hamrhybrid,heartbeat,thermal,grip,,,,,,iw5_cm901,,,,l96a1scopevz
+heartbeat,thermalsmg,xmags,,,,,,,,,,,,cheytacscopevz
+shotgun,xmags,thermal,,,,,,,,,,,,
+xmags,rof,grip,,,,,,,,,,,,
+thermal,,rof,,,,,,,,,,,,

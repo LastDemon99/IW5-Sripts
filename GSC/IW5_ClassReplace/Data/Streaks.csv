@@ -1,0 +1,17 @@
+streaktype_support,streaktype_specialist,assaultStreaks,,DeathStreak
+none,none,none,,specialty_null
+uav_support,specialty_longersprint_ks,uav,,specialty_juiced
+counter_uav,specialty_fastreload_ks,airdrop_assault,,specialty_grenadepulldeath
+deployable_vest,specialty_scavenger_ks,ims,,specialty_finalstand
+airdrop_trap,specialty_blindeye_ks,predator_missile,,specialty_revenge
+sam_turret,specialty_paint_ks,airdrop_sentry_minigun,,specialty_stopping_power
+remote_uav,specialty_hardline_ks,precision_airstrike,,specialty_c4death
+triple_uav,specialty_coldblooded_ks,helicopter,,specialty_uav
+remote_mg_turret,specialty_quickdraw_ks,littlebird_flock,,specialty_null
+stealth_airstrike,specialty_assists_ks,littlebird_support,,
+airdrop_juggernaut_recon,_specialty_blastshield_ks,remote_mortar,,
+escort_airdrop,specialty_detectexplosive_ks,airdrop_remote_tank,,
+,specialty_autospot_ks,ac130 ,,
+,specialty_bulletaccuracy_ks,helicopter_flares,,
+,specialty_quieter_ks,airdrop_juggernaut,,
+,specialty_stalker_ks,osprey_gunner,,
