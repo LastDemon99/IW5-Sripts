@@ -38,11 +38,11 @@
 	>vote_dsr "name1;alias1:name2;alias2"
 
 
-- The config file: [Config](https://github.com/LastDemon99/IW5_VoteSystem/blob/main/config.cfg) 
+- The config file: [Config](https://github.com/LastDemon99/IW5_Sripts/blob/main/GSC/VoteSystem/config.cfg) 
 - To interact with the menu press the keys that appear at the bottom of the screen
 
 # <a name="download"></a>Download
-- Download v0.2.4: [IW5_VoteSystem](https://github.com/LastDemon99/IW5_VoteSystem/releases/download/v0.2.4/IW5_VoteSystem.gsc)
+- Download v0.3: [IW5_VoteSystem](https://github.com/LastDemon99/IW5_Sripts/releases/download/v0.3/IW5_VoteSystem.gsc)
 
 # <a name="credits"></a>Credits
 - LethalBeats Team
@@ -51,5 +51,4 @@
 - Plutonium discord community for solving doubts
 
 # <a name="sponsor"></a>Sponsor
-<a href="https://www.patreon.com/RandomScriptsIW5"><img src="https://github.com/LastDemon99/LastDemon99/blob/main/Data/patreon_dark.png" height="60"></a>  
-if you want to help me create more content and have access and preview in advance, support me in patreon :3
+<a href="https://www.patreon.com/RandomScriptsIW5"><img src="https://github.com/LastDemon99/LastDemon99/blob/main/Data/patreon_dark.png" height="60"></a>
