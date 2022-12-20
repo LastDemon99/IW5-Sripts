@@ -1,0 +1,1 @@
+# IW5_BotClassRestricted
