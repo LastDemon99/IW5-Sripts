@@ -359,7 +359,12 @@ teamBots_loop()
 			continue;
 		
 		if (!isDefined(player.pers["team"]))
-			player thread [[level.allies]]();
+		{
+			if(getDvar("g_gametype") == "infect")
+				player thread [[level.allies]]();
+			if(getDvar("g_gametype") == "jugg")
+				player thread [[level.axis]]();
+		}
 	}
 }
 
