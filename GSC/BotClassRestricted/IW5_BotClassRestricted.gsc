@@ -98,10 +98,24 @@ onGiveLoadout()
 replaceRestrictedItems()
 {
 	if(GetMatchRulesData("commonOption", "weaponRestricted", self.pers["gamemodeLoadout"]["loadoutPrimary"]))
+	{
 		self.pers["gamemodeLoadout"]["loadoutPrimary"] = "none";
+		self.pers["gamemodeLoadout"]["loadoutPrimaryAttachment"] = "none";
+		self.pers["gamemodeLoadout"]["loadoutPrimaryAttachment2"] = "none";
+		self.pers["gamemodeLoadout"]["loadoutPrimaryBuff"] = "specialty_null";
+		self.pers["gamemodeLoadout"]["loadoutPrimaryCamo"] = "none";
+		self.pers["gamemodeLoadout"]["loadoutPrimaryReticle"] = "none";
+	}
 	
 	if(GetMatchRulesData("commonOption", "weaponRestricted", self.pers["gamemodeLoadout"]["loadoutSecondary"]))
+	{
 		self.pers["gamemodeLoadout"]["loadoutSecondary"] = "none";
+		self.pers["gamemodeLoadout"]["loadoutSecondaryAttachment"] = "none";
+		self.pers["gamemodeLoadout"]["loadoutSecondaryAttachment2"] = "none";
+		self.pers["gamemodeLoadout"]["loadoutSecondaryBuff"] = "specialty_null";
+		self.pers["gamemodeLoadout"]["loadoutSecondaryCamo"] = "none";
+		self.pers["gamemodeLoadout"]["loadoutSecondaryReticle"] = "none";
+	}
 	
 	if(GetMatchRulesData("commonOption", "attachmentRestricted", self.pers["gamemodeLoadout"]["loadoutPrimaryAttachment"]))
 		self.pers["gamemodeLoadout"]["loadoutPrimaryAttachment"] = "none";
@@ -171,14 +185,7 @@ replaceRestrictedItems()
 		self.pers["gamemodeLoadout"]["loadoutDeathstreak"] = "specialty_null";
 	
 	if(self.pers["gamemodeLoadout"]["loadoutPrimary"] == "none" && self.pers["gamemodeLoadout"]["loadoutSecondary"] == "none")
-	{
 		self.pers["gamemodeLoadout"]["loadoutPrimary"] = getRandomWep();
-		self.pers["gamemodeLoadout"]["loadoutPrimaryAttachment"] = "none";
-		self.pers["gamemodeLoadout"]["loadoutPrimaryAttachment2"] = "none";
-		self.pers["gamemodeLoadout"]["loadoutPrimaryBuff"] = "specialty_null";
-		self.pers["gamemodeLoadout"]["loadoutPrimaryCamo"] = "none";
-		self.pers["gamemodeLoadout"]["loadoutPrimaryReticle"] = "none";
-	}
 }
 
 loadData()
