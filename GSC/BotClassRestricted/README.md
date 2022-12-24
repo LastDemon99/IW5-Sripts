@@ -16,6 +16,7 @@
 - If custom classes are allowed, the script block items that are restricted in the dsr.
 - If no custom classes are allowed, the script assigns the bot a random class based on the ones defaulted by the dsr.
 - Depending on the mode, the special classes will be checked, the classes errors of infected, gungame, oic, jugg will be fixed.
+- This script also fixes the auto balancing of the bots in infected and jugg mode, as well as change certain characteristics of the bots for infected.
 
 # <a name="how-to-use"></a>How To Use
 - Place the script file at "%localappdata%/plutonium/storage/iw5/scripts" if the folder does not exist, create it
