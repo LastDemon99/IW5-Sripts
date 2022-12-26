@@ -80,6 +80,8 @@ onGiveLoadout()
 			self replaceRestrictedItems();
 			class = "gamemode";
 		}
+		else if(level.defaultRecipes[self.team].size == 0)
+			class = "class" + randomInt(4);
 		else class = level.defaultRecipes[self.team][randomInt(level.defaultRecipes[self.team].size)];
 		
 		self maps\mp\bots\_bot_utility::botGiveLoadout(self.team, class, false, true);	
@@ -200,7 +202,7 @@ loadData()
 			maxIndex = getDvar("g_gametype") == "tjugg" || getDvar("g_gametype") == "sd" || getDvar("g_gametype") == "sab" || getDvar("g_gametype") == "ctf" || getDvar("g_gametype") == "tdef" ? 5 : 6;
 			for(i = 0; i < maxIndex; i++)
 			{
-				if (getMatchRulesData("defaultClasses", team, i, "class", "inUse"))
+				if (GetMatchRulesData("defaultClasses", team, i, "class", "inUse"))
 					level.defaultRecipes[team][level.defaultRecipes[team].size] = team + "_recipe" + (i + 1);
 			}
 		}
