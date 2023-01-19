@@ -124,3 +124,11 @@ giveLoadout(team, class, allowCopycat, setPrimarySpawnWeapon)
 		else self maps\mp\gametypes\_class::giveLoadout(team, class, allowCopycat, setPrimarySpawnWeapon);
 	}
 }
+
+is_bot()
+{
+	assert( isDefined( self ) );
+	assert( isPlayer( self ) );
+
+	return ( ( isDefined( self.pers["isBot"] ) && self.pers["isBot"] ) || ( isDefined( self.pers["isBotWarfare"] ) && self.pers["isBotWarfare"] ) || isSubStr( self getguid() + "", "bot" ) );
+}
