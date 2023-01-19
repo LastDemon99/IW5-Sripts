@@ -11,7 +11,6 @@
 
 #include common_scripts\utility;
 #include maps\mp\_utility;
-#include maps\mp\gametypes\_class;
 
 init()
 {
@@ -48,12 +47,12 @@ onPlayerSpawn()
 	{
 		self waittill("spawned_player");
 		
-		self.pers["gamemodeLoadout"] = self cloneLoadout();		
+		self.pers["gamemodeLoadout"] = self maps\mp\gametypes\_class::cloneLoadout();		
 		self.pers["gamemodeLoadout"]["loadoutJuggernaut"] = false;		
 		
 		self ReplaceRestrictedItems();
 		
-		self maps\mp\gametypes\_class::giveLoadout(self.team, "gamemode", false, true);	
+		self giveLoadout(self.team, "gamemode", false, true);	
 		maps\mp\killstreaks\_killstreaks::clearKillstreaks();
 	}
 }
@@ -114,4 +113,14 @@ replaceItem(target, data)
 				self.pers["gamemodeLoadout"][target] = data[value];	
 			ignore = value;
 		}
+}
+
+giveLoadout(team, class, allowCopycat, setPrimarySpawnWeapon) 
+{
+	if(!isDefined(game["botWarfare"])) self maps\mp\gametypes\_class::giveLoadout(team, class, allowCopycat, setPrimarySpawnWeapon);
+	else
+	{
+		if(self is_bot()) self maps\mp\bots\_bot_utility::botGiveLoadout(team, class, allowCopycat, setPrimarySpawnWeapon);
+		else self maps\mp\gametypes\_class::giveLoadout(team, class, allowCopycat, setPrimarySpawnWeapon);
+	}
 }
