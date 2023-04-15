@@ -51,5 +51,4 @@
 - Plutonium discord community for solving doubts
 
 # <a name="sponsor"></a>Sponsor
-<a href="https://www.patreon.com/RandomScriptsIW5"><img src="https://github.com/LastDemon99/LastDemon99/blob/main/Data/patreon_dark.png" height="60"></a>
 <a href="https://www.paypal.com/paypalme/lastdemon99/"><img src="https://github.com/LastDemon99/LastDemon99/blob/main/Data/paypal_dark.svg" height="60"></a>
