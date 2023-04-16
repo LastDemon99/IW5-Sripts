@@ -84,8 +84,7 @@ onGiveLoadout()
 			class = "class" + randomInt(4);
 		else class = level.defaultRecipes[self.team][randomInt(level.defaultRecipes[self.team].size)];
 		
-		self maps\mp\bots\_bot_utility::botGiveLoadout(self.team, class, false, true);	
-		self maps\mp\killstreaks\_killstreaks::clearKillstreaks();
+		self maps\mp\bots\_bot_utility::botGiveLoadout(self.team, class, false, true);
 		
 		if(self.pers["gamemodeLoadout"]["loadoutJuggernaut"])
 		{
