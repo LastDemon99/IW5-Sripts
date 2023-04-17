@@ -15,7 +15,7 @@
 # <a name="credits"></a>Credits
 - LethalBeats Team
 - The Plutonium team for gsc implementation
-- xensic fot gsc tool [GSC-Tool](https://github.com/xensik/gsc-tool) & dump files [IW5-Scripts](https://github.com/plutoniummod/iw5-scripts)
+- xensik fot gsc tool [GSC-Tool](https://github.com/xensik/gsc-tool) & dump files [IW5-Scripts](https://github.com/plutoniummod/iw5-scripts)
 
 # <a name="sponsor"></a>Sponsor
 <a href="https://www.paypal.com/paypalme/lastdemon99/"><img src="https://github.com/LastDemon99/LastDemon99/blob/main/Data/paypal_dark.svg" height="60"></a>
