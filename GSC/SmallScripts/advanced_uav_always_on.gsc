@@ -8,7 +8,8 @@ main()
 
 init()
 {
-	level thread onPlayerConnect();
+	SetDvarIfUninitialized("allow_advanced_uav", 1);	
+	if(getDvarInt("allow_advanced_uav")) level thread onPlayerConnect();
 }
 
 onPlayerConnect()
