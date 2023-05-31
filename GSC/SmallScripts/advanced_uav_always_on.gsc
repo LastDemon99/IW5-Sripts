@@ -1,15 +1,14 @@
 #include common_scripts\utility;
 #include maps\mp\_utility;
 
-main()
-{
-	replacefunc(maps\mp\perks\_perkfunctions::setPainted, ::setPainted);
-}
-
 init()
 {
 	SetDvarIfUninitialized("allow_advanced_uav", 1);	
-	if(getDvarInt("allow_advanced_uav")) level thread onPlayerConnect();
+	if(getDvarInt("allow_advanced_uav")) 
+	{
+		replacefunc(maps\mp\perks\_perkfunctions::setPainted, ::setPainted);
+		level thread onPlayerConnect();
+	}
 }
 
 onPlayerConnect()
