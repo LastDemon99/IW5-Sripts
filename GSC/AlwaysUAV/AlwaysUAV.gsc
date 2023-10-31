@@ -30,7 +30,6 @@ init()
 		level.killStreakFuncs["uav_2"] = ::blank;
 		level.killStreakFuncs["double_uav"] = ::blank;
 		level.killStreakFuncs["triple_uav"] = ::blank;
-		level.killStreakFuncs["counter_uav"] = ::blank;
 		level.killstreakFuncs["uav_strike"] = ::blank;
 		level.killstreakSetupFuncs["uav_strike"] = ::blank;
 		level.killstreakFuncs["directional_uav"] = ::blank;
@@ -75,4 +74,4 @@ onPlayerSpawn()
 
 getRadarStrength(team) { return 3; }
 updateUAVModelVisibility() { self hide(); }
-blank(arg1, arg2) {}
+blank(arg1, arg2) { return true; }
