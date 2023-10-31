@@ -30,7 +30,6 @@
 
 # Warning
 - **A restart of the map is required for the changes to take effect**
-- **When the player using a uav streak the console throw an error, you must prohibit the streak in your dsr. In the case of using Bot Warfare I recommend prohibiting the streak with [BotClassRestricted](https://github.com/LastDemon99/IW5-Sripts/tree/main/GSC/BotClassRestricted)**
 #
 	
 # <a name="download"></a>Download
