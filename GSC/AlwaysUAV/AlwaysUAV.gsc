@@ -12,18 +12,22 @@
 #include common_scripts\utility;
 #include maps\mp\_utility;
 
+main()
+{
+	replacefunc(maps\mp\killstreaks\_airdrop::addCrateType, ::addCrateType);
+	replacefunc(maps\mp\perks\_perkfunctions::setPainted, ::blank);
+	replacefunc(maps\mp\killstreaks\_remoteuav::remoteUAV_unmarkRemovedPlayer, ::blank);
+	replacefunc(maps\mp\killstreaks\_uav::damageTracker, ::blank);
+	replacefunc(maps\mp\killstreaks\_uav::updateUAVModelVisibility, ::updateUAVModelVisibility);
+	replacefunc(maps\mp\killstreaks\_uav::_getRadarStrength, ::getRadarStrength);
+}
+
 init()
 {
 	setDvarIfUninitialized("always_uav", 0);
 	setDvarIfUninitialized("sweep_uav", 1);
 	
 	if(!getDvarInt("always_uav")) return;
-	
-	replacefunc(maps\mp\perks\_perkfunctions::setPainted, ::blank);
-	replacefunc(maps\mp\killstreaks\_remoteuav::remoteUAV_unmarkRemovedPlayer, ::blank);
-	replacefunc(maps\mp\killstreaks\_uav::damageTracker, ::blank);
-	replacefunc(maps\mp\killstreaks\_uav::updateUAVModelVisibility, ::updateUAVModelVisibility);
-	replacefunc(maps\mp\killstreaks\_uav::_getRadarStrength, ::getRadarStrength);
 	
 	if(getDvarInt("sweep_uav"))
 	{
@@ -67,6 +71,13 @@ giveUavFFA()
 	if (level.teamBased) return;
 	self waittill("spawned_player");
 	level thread maps\mp\killstreaks\_uav::launchUAV(self, self.pers["team"], 99999, level.uav_type);
+}
+
+addCrateType(dropType, crateType, crateWeight, crateFunc)
+{
+	if (crateType == "uav" || crateType == "triple_uav") return;
+	level.crateTypes[dropType][crateType] = crateWeight;
+	level.crateFuncs[dropType][crateType] = crateFunc;
 }
 
 getRadarStrength(team) { return 3; }
