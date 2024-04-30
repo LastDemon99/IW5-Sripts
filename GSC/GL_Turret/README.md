@@ -20,7 +20,7 @@
 - Simply get the turret via care package.<br>
 	
 # <a name="download"></a>Download
-- GSC Script: [GL_Turret]()
+- GSC Script: [GL_Turret](https://github.com/LastDemon99/IW5-Sripts/releases/download/glt-v0.1/GL_Turret.gsc)
 #
 
 # <a name="credits"></a>Credits
