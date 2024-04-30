@@ -1,3 +1,14 @@
+/*
+============================
+|   Lethal Beats Team	   |
+============================
+|Game : IW5                |
+|Script : gl_turret        |
+|Creator : LastDemon99	   |
+|Type : Addon              |
+============================
+*/
+
 #include maps\mp\_utility;
 #include common_scripts\utility;
 #include maps\mp\killstreaks\_autosentry;
@@ -7,6 +18,7 @@ init()
 	replacefunc(maps\mp\killstreaks\_autosentry::tryUseAutoSentry, ::_tryUseAutoSentry);
 	replacefunc(maps\mp\killstreaks\_autosentry::sentry_initSentry, ::sentryInitSentry);
 	replacefunc(maps\mp\killstreaks\_autosentry::sentry_burstFireStart, ::sentryBurstFireStart);
+	replacefunc(maps\mp\killstreaks\_autosentry::sentry_setplaced, ::sentrySetPlaced);
 	replacefunc(maps\mp\killstreaks\_airdrop::waitForDropCrateMsg, ::waitForDropCrateMsg);
 	
 	level.sentrySettings["gl_turret"] = spawnStruct();
@@ -187,4 +199,42 @@ _tryUseAutoSentry(lifeId)
 		self TakeWeapon(killstreakWeapon);
 	}	
 	return result;
+}
+
+sentrySetPlaced()
+{
+    self setmodel(level.sentrysettings[self.sentrytype].modelbase);
+
+    if (self getmode() == "manual")
+        self setmode(level.sentrysettings[self.sentrytype].sentrymodeoff);
+
+    self setsentrycarrier(undefined);
+    self setcandamage(1);
+
+    switch (self.sentrytype)
+    {
+        case "minigun_turret":
+            self.angles = self.carriedby.angles;
+
+            if (isalive(self.originalowner))
+                self.originalowner maps\mp\_utility::setlowermessage("pickup_hint", level.sentrysettings[self.sentrytype].ownerhintstring, 3.0, undefined, undefined, undefined, undefined, undefined, 1);
+
+            self.ownertrigger = spawn("trigger_radius", self.origin + (0.0, 0.0, 1.0), 0, 105, 64);
+            self.originalowner thread turret_handlepickup(self);
+            thread turret_handleuse();
+            break;
+        default:
+            break;
+    }
+
+    sentry_makesolid();
+    self.carriedby forceusehintoff();
+    self.carriedby = undefined;
+
+    if (isdefined(self.owner))
+        self.owner.iscarrying = 0;
+
+    sentry_setactive();
+    self playsound("sentry_gun_plant");
+    self notify("placed");
 }
