@@ -14,7 +14,7 @@
 
 attach_is_alt(attach)
 {
-	return isGl(attach) || isAltShotgun(attach);
+	return attach_is_gl(attach) || attach_is_shotgun(attach);
 }
 
 attach_is_shotgun(attach)
@@ -125,13 +125,13 @@ attach_get_random(weapon_basename, attachs_count, return_builded, include_none)
 	
 	while(attachs_count != 0)
 	{
-		if (include_none && cointoss() && cointoss())
+		if (include_none && randomint(100) >= 50)
 		{
 			attachs_count--;
 			continue;
 		}
 		
-		attach = random(allowed_attachs);
+		attach = scripts\lethalbeats\array::array_random_item(allowed_attachs);
 		attachs[attachs.size] = attach;
 		allowed_attachs = attach_get_combos(attach, allowed_attachs);
 		attachs_count--;
@@ -159,7 +159,7 @@ attach_build_rail(attach, weapon_basename, weapon_class)
 		case "smg":
 		case "lmg":
 		case "machine_pistol":
-			return attachmentMap(attach, weapon_basename);
+			return maps\mp\_utility::attachmentMap(attach, weapon_basename);
 		default:
 			return attach;
 	}

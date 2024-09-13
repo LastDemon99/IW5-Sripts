@@ -59,7 +59,7 @@ string_compare(string_a, string_b) // insensitive
     return strICmp(string_a, string_b) == 0;
 }
 
-string_is_later_in_alphabet()
+string_is_later_in_alphabet(string_a, string_b)
 {
     return strICmp(string_a, string_b) > 0;
 }
@@ -259,9 +259,4 @@ string_to_array(string)
     for(i = 0; i < string.size; i++)
         result[i] = string[i];
     return result;
-}
-
-string_compare(string_a, string_b)
-{
-    return string_a == string_b;
 }

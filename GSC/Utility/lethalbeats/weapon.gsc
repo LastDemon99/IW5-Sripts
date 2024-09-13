@@ -90,27 +90,27 @@ weapon_is_cammo_allowed(baseName)
 
 weapon_has_attach_alt(weapon)
 {
-	return array_any(get_current_attachs(weapon), ::attach_is_alt);
+	return array_any(weapon_get_current_attachs(weapon), ::attach_is_alt);
 }
 
 weapon_has_attach_shotgun(weapon)
 {
-	return array_any(get_current_attachs(weapon), ::attach_is_shotgun);
+	return array_any(weapon_get_current_attachs(weapon), ::attach_is_shotgun);
 }
 
 weapon_has_attach_sight(weapon)
 {
-	return array_any(get_current_attachs(weapon), ::attach_is_sight);
+	return array_any(weapon_get_current_attachs(weapon), ::attach_is_sight);
 }
 
 weapon_has_attach_gl(weapon)
 {
-	return array_any(get_current_attachs(weapon), ::attach_is_gl);
+	return array_any(weapon_get_current_attachs(weapon), ::attach_is_gl);
 }
 
 weapon_has_attach_akimbo(weapon)
 {
-	return array_any(get_current_attachs(weapon), ::attach_is_akimbo);
+	return array_any(weapon_get_current_attachs(weapon), ::attach_is_akimbo);
 }
 
 weapon_get(weapon_class)
@@ -120,7 +120,7 @@ weapon_get(weapon_class)
 	{
 		index_range = level.recipe_indexes[weapon_class];
 		indexes = array_arange(index_range[0], index_range[1]);
-		if (weapon_class == "projectile") indexes = array_filter(index_array, ::_projectile_filter);
+		if (weapon_class == "projectile") indexes = array_filter(indexes, ::_projectile_filter);
 		weapons = array_map(indexes, ::_weapon_from_recipe);
 	}
 	custom_weapons = array_filter(array_get_keys(level.customWeapons), ::_weapon_custom_filter, i(), weapon_class);
@@ -155,13 +155,13 @@ weapon_get_barename(baseName)
 weapon_get_display_name(baseName)
 {	
 	if (weapon_is_custom(baseName)) return level.customWeapons[baseName][1];
-	return &tablelookup("mp/statstable.csv", 4, baseName, 3);
+	return tablelookup("mp/statstable.csv", 4, baseName, 3);
 }
 
 weapon_get_class(baseName)
 {
 	if (weapon_is_custom(baseName)) return level.customWeapons[baseName][0];
-	weapon_class = getWeaponClass(baseName);
+	weapon_class = maps\mp\_utility::getWeaponClass(baseName);
 	return string_get_substring(weapon_class, 7, weapon_class.size);
 }
 

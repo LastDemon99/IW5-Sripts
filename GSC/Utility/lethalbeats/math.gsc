@@ -184,6 +184,11 @@ math_pi()
     return 3.14159;
 }
 
+math_cointoss()
+{
+	return randomint(100) >= 50;
+}
+
 math_angle_clamp_180(angle)
 {
     return angleClamp180(angle);

@@ -322,12 +322,12 @@ array_from_dvar(dvar, split)
 
 array_to_string(array)
 {
-    return "[" + lethalbeats\string::string_join(", ", array) + "]";
+    return "[" + scripts\lethalbeats\string::string_join(", ", array) + "]";
 }
 
 array_print(array)
 {
-    print("[" + lethalbeats\string::string_join(", ", array) + "]");
+    print("[" + scripts\lethalbeats\string::string_join(", ", array) + "]");
 }
 
 array_contains(array, item)
@@ -478,6 +478,16 @@ array_reverse(array)
 	for (i = array.size - 1; i >= 0; i--)
 		result[result.size] = array[i];
 	return result;
+}
+
+array_random_item(array)
+{
+	result = [];
+	foreach (index, value in array)
+		result[result.size] = value;
+
+	if (!result.size) return undefined;	
+	return result[randomint(result.size)];
 }
 
 array_randomize(array)
