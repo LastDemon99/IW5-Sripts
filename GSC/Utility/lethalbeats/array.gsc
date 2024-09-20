@@ -9,6 +9,12 @@
 ============================
 */
 
+/*
+///DocStringBegin
+detail: array_combine(<Array>: array_a, <Array>: array_b): array
+summary: Combines the two arrays and returns the resulting array. This function doesn't care if it produces duplicates
+///DocStringEnd
+*/
 array_combine(array_a, array_b)
 {
 	result = [];
@@ -20,6 +26,12 @@ array_combine(array_a, array_b)
 	return result;
 }
 
+/*
+///DocStringBegin
+detail: array_combine(<Array>: array_a, <Array>: array_b, <Array>: array_c): array
+summary: Combines the two arrays and returns the resulting array. This function doesn't care if it produces duplicates
+///DocStringEnd
+*/
 array_combine_3(array_a, array_b, array_c)
 {
 	result = [];
@@ -34,6 +46,12 @@ array_combine_3(array_a, array_b, array_c)
 	return result;
 }
 
+/*
+///DocStringBegin
+detail: array_combine(<Array>: array_a, <Array>: array_b, <Array>: array_c, <Array>: array_d): array
+summary: Combines the two arrays and returns the resulting array. This function doesn't care if it produces duplicates
+///DocStringEnd
+*/
 array_combine_4(array_a, array_b, array_c, array_d)
 {
 	result = [];
@@ -51,6 +69,26 @@ array_combine_4(array_a, array_b, array_c, array_d)
 	return result;
 }
 
+/*
+///DocStringBegin
+detail: array_to_dictionary(<Array>: array_a, <Array>: array_b): dictionary
+summary: Converts two arrays into a dictionary where elements of the first array become keys, and elements of the second array become the corresponding values.
+///DocStringEnd
+*/
+array_to_dictionary(array_a, array_b)
+{
+	result = [];
+    for (i = 0; i < array_a.size; i++)
+        result[array_a[i]] = array_b[i];
+    return result;
+}
+
+/*
+///DocStringBegin
+detail: array_unique(<Array>: array): array
+summary: Removes duplicate values from the array by returning a new array containing only unique elements in the order of their first occurrence.
+///DocStringEnd
+*/
 array_unique(array)
 {
 	result = [];
@@ -66,6 +104,12 @@ array_unique(array)
 	return result;
 }
 
+/*
+///DocStringBegin
+detail: array_union(<Array>: array_a, <Array>: array_b): array
+summary: Combines two arrays and returns an array containing only unique elements from both, preserving their order of first occurrence.
+///DocStringEnd
+*/
 array_union(array_a, array_b)
 {
 	result = [];
@@ -89,6 +133,12 @@ array_union(array_a, array_b)
 	return result;
 }
 
+/*
+///DocStringBegin
+detail: array_intersection(<Array>: array_a, <Array>: array_b): array
+summary: Returns an array containing only the elements that are present in both input arrays, preserving the order of first occurrence.
+///DocStringEnd
+*/
 array_intersection(array_a, array_b)
 {
     result = [];
@@ -104,6 +154,12 @@ array_intersection(array_a, array_b)
     return result;
 }
 
+/*
+///DocStringBegin
+detail: array_difference(<Array>: array_a, <Array>: array_b): array
+summary: Returns an array of elements that are in the first array but not in the second array, preserving the order of first occurrence.
+///DocStringEnd
+*/
 array_difference(array_a, array_b)
 {
     result = [];
@@ -119,6 +175,12 @@ array_difference(array_a, array_b)
     return result;
 }
 
+/*
+///DocStringBegin
+detail: array_first(<Array>: array, <Function>: func, <Any>: arg1, <Any>: arg2, <Any>: arg3, <Any>: arg4, <Any>: arg5): any
+summary: Returns the first element in the array that satisfies the condition defined by func when applied with up to five additional arguments. If no such element is found, returns undefined.
+///DocStringEnd
+*/
 array_first(array, func, arg1, arg2, arg3, arg4, arg5)
 {
 	args = [arg1, arg2, arg3, arg4, arg5];
@@ -141,6 +203,12 @@ array_first(array, func, arg1, arg2, arg3, arg4, arg5)
 	return undefined;
 }
 
+/*
+///DocStringBegin
+detail: array_index(<Array>: array, <Function>: func, <Any>: arg1, <Any>: arg2, <Any>: arg3, <Any>: arg4, <Any>: arg5): int
+summary: Returns the index of the first element in the array that satisfies the condition defined by func when applied with up to five additional arguments. If no such element is found, returns undefined.
+///DocStringEnd
+*/
 array_index(array, func, arg1, arg2, arg3, arg4, arg5)
 {
 	args = [arg1, arg2, arg3, arg4, arg5];
@@ -163,6 +231,12 @@ array_index(array, func, arg1, arg2, arg3, arg4, arg5)
 	return undefined;
 }
 
+/*
+///DocStringBegin
+detail: array_any(<Array>: array, <Function>: func, <Any>: arg1, <Any>: arg2, <Any>: arg3, <Any>: arg4, <Any>: arg5): bool
+summary: Returns true if any element in the array satisfies the condition defined by func when applied with up to five additional arguments. Otherwise, returns false.
+///DocStringEnd
+*/
 array_any(array, func, arg1, arg2, arg3, arg4, arg5)
 {
 	args = [arg1, arg2, arg3, arg4, arg5];
@@ -185,6 +259,12 @@ array_any(array, func, arg1, arg2, arg3, arg4, arg5)
 	return false;
 }
 
+/*
+///DocStringBegin
+detail: array_all(<Array>: array, <Function>: func, <Any>: arg1, <Any>: arg2, <Any>: arg3, <Any>: arg4, <Any>: arg5): bool
+summary: Returns true if all elements in the array satisfy the condition defined by func when applied with up to five additional arguments. Otherwise, returns false.
+///DocStringEnd
+*/
 array_all(array, func, arg1, arg2, arg3, arg4, arg5)
 {
 	args = [arg1, arg2, arg3, arg4, arg5];
@@ -207,6 +287,12 @@ array_all(array, func, arg1, arg2, arg3, arg4, arg5)
 	return true;
 }
 
+/*
+///DocStringBegin
+detail: array_filter(<Array>: array, <Function>: func, <Any>: arg1, <Any>: arg2, <Any>: arg3, <Any>: arg4, <Any>: arg5): array
+summary: Returns a new array containing only the elements that satisfy the condition defined by func when applied with up to five additional arguments.
+///DocStringEnd
+*/
 array_filter(array, func, arg1, arg2, arg3, arg4, arg5)
 {	
 	args = [arg1, arg2, arg3, arg4, arg5];
@@ -230,6 +316,12 @@ array_filter(array, func, arg1, arg2, arg3, arg4, arg5)
 	return result;
 }
 
+/*
+///DocStringBegin
+detail: array_map(<Array>: array, <Function>: func, <Any>: arg1, <Any>: arg2, <Any>: arg3, <Any>: arg4, <Any>: arg5): array
+summary: Applies func to each element in the array, with up to five additional arguments, and returns a new array containing the results.
+///DocStringEnd
+*/
 array_map(array, func, arg1, arg2, arg3, arg4, arg5)
 {
 	args = [arg1, arg2, arg3, arg4, arg5];
@@ -253,6 +345,12 @@ array_map(array, func, arg1, arg2, arg3, arg4, arg5)
 	return result;
 }
 
+/*
+///DocStringBegin
+detail: array_reduce(<Array>: array, <Any>: initial_value, <Function>: func, <Any>: arg1, <Any>: arg2, <Any>: arg3, <Any>: arg4, <Any>: arg5): any
+summary: Reduces the array to a single value by applying func to each element, starting with initial_value and using up to five additional arguments. Returns the final reduced value.
+///DocStringEnd
+*/
 array_reduce(array, initial_value, func, arg1, arg2, arg3, arg4, arg5)
 {
 	args = [arg1, arg2, arg3, arg4, arg5];
@@ -276,6 +374,12 @@ array_reduce(array, initial_value, func, arg1, arg2, arg3, arg4, arg5)
 	return result;
 }
 
+/*
+///DocStringBegin
+detail: array_arange(<int>: start, <int>: end): array
+summary: Generates an array of integers from start (inclusive) to end (exclusive), with each integer incremented by 1.
+///DocStringEnd
+*/
 array_arange(start, end)
 {
 	result = [];
@@ -284,6 +388,12 @@ array_arange(start, end)
 	return result;
 }
 
+/*
+///DocStringBegin
+detail: array_slice(<Array>: array, <int>: start, <int>: end, <int>: step): array
+summary: Returns a new array containing elements from start to end (exclusive) with the specified step. Handles positive and negative steps and default values for start, end, and step.
+///DocStringEnd
+*/
 array_slice(array, start, end, step)
 {
 	result = [];
@@ -310,6 +420,12 @@ array_slice(array, start, end, step)
 	return result;
 }
 
+/*
+///DocStringBegin
+detail: array_from_dvar(<Dvar>: dvar, <String>: split): array
+summary: Converts a dynamic variable dvar to an array by splitting its value using the specified split delimiter. Returns an array with the split values or a single-element array if the value doesn't contain the delimiter.
+///DocStringEnd
+*/
 array_from_dvar(dvar, split)
 {
 	if (!isDefined(split)) split = " ";	
@@ -320,16 +436,34 @@ array_from_dvar(dvar, split)
 	else return [result];
 }
 
+/*
+///DocStringBegin
+detail: array_to_string(<Array>: array): string
+summary: Converts the array into a string representation where elements are joined by a comma and enclosed in square brackets.
+///DocStringEnd
+*/
 array_to_string(array)
 {
     return "[" + scripts\lethalbeats\string::string_join(", ", array) + "]";
 }
 
+/*
+///DocStringBegin
+detail: array_print(<Array>: array): void
+summary: Prints the array as a string representation where elements are joined by a comma and enclosed in square brackets.
+///DocStringEnd
+*/
 array_print(array)
 {
     print("[" + scripts\lethalbeats\string::string_join(", ", array) + "]");
 }
 
+/*
+///DocStringBegin
+detail: array_contains(<Array>: array, <Any>: item): bool
+summary: Checks if the array contains the specified item. Returns true if the item is found, otherwise returns false.
+///DocStringEnd
+*/
 array_contains(array, item)
 {
 	for(i = 0; i < array.size; i++)
@@ -338,16 +472,34 @@ array_contains(array, item)
     return false;
 }
 
+/*
+///DocStringBegin
+detail: array_contains_array(<Array>: array_a, <Array>: array_b): bool
+summary: Checks if all elements of array_b are present in array_a. Returns true if array_a contains every element of array_b, otherwise returns false.
+///DocStringEnd
+*/
 array_contains_array(array_a, array_b)
 {
     return array_intersection(array_a, array_b).size == array_b.size;
 }
 
+/*
+///DocStringBegin
+detail: array_contains_key(<Array>: array, <Any>: key): bool
+summary: Checks if the array contains the specified key as an index. Returns true if the key exists, otherwise returns false.
+///DocStringEnd
+*/
 array_contains_key(array, key)
 {
 	return isDefined(array[key]);
 }
 
+/*
+///DocStringBegin
+detail: array_random_int_unique(<int>: size, <int>: min, <int>: max): array
+summary: Generates an array of unique random integers of length size, where each integer is between min and max (inclusive). If duplicates are detected, it regenerates the value until uniqueness is ensured.
+///DocStringEnd
+*/
 array_random_int_unique(size, min, max)
 {
 	uniqueArray = [size];
@@ -367,12 +519,24 @@ array_random_int_unique(size, min, max)
 	return uniqueArray;
 }
 
+/*
+///DocStringBegin
+detail: array_append(<Array>: array, <Any>: value): array
+summary: Appends the specified value to the end of the array and returns the updated array.
+///DocStringEnd
+*/
 array_append(array, value)
 {
 	array[array.size] = value;
 	return array;
 }
 
+/*
+///DocStringBegin
+detail: array_insert(<Array>: array, <int>: index, <Any>: value): array
+summary: Inserts the specified value at the given index in the array and returns the new array with the value inserted.
+///DocStringEnd
+*/
 array_insert(array, index, value)
 {
 	result = [];
@@ -387,6 +551,12 @@ array_insert(array, index, value)
 	return result;
 }
 
+/*
+///DocStringBegin
+detail: array_remove(<Array>: array, <Any>: value): array
+summary: Returns an array by removing all occurrences of the specified value from the original array. Returns the updated array.
+///DocStringEnd
+*/
 array_remove(array, value)
 {
 	result = [];
@@ -396,6 +566,12 @@ array_remove(array, value)
 	return result;
 }
 
+/*
+///DocStringBegin
+detail: array_remove_index(<Array>: array, <int>: index): array
+summary: Returns an array by removing the element at the specified index from the original array. Returns the updated array.
+///DocStringEnd
+*/
 array_remove_index(array, index)
 {
 	result = [];
@@ -405,6 +581,12 @@ array_remove_index(array, index)
 	return result;
 }
 
+/*
+///DocStringBegin
+detail: array_remove_key(<Array>: array, <Any>: key): array
+summary: Returns an array by removing the element with the specified key from the original array. Returns the updated array. If the key does not exist, returns the original array.
+///DocStringEnd
+*/
 array_remove_key(array, key)
 {
 	if (!isDefined(array[key])) return array;
@@ -416,11 +598,23 @@ array_remove_key(array, key)
 	return result;
 }
 
+/*
+///DocStringBegin
+detail: array_get_keys(<Array>: array): array
+summary: Returns an array of all keys from the given array.
+///DocStringEnd
+*/
 array_get_keys(array)
 {
 	return getArrayKeys(array);	
 }
 
+/*
+///DocStringBegin
+detail: array_get_values(<Array>: array): array
+summary: Returns an array of all values from the given array, preserving the order of the keys.
+///DocStringEnd
+*/
 array_get_values(array)
 {
 	result = [];
@@ -430,6 +624,12 @@ array_get_values(array)
 	return result;
 }
 
+/*
+///DocStringBegin
+detail: array_alphabetize(<Array>: array): array
+summary: Sorts the array of strings in alphabetical order using a selection sort algorithm. Returns the sorted array. Preserves the order of elements if they are equal.
+///DocStringEnd
+*/
 array_alphabetize(array)
 {
 	if (array.size <= 1)
@@ -461,6 +661,12 @@ array_alphabetize(array)
 	return array;
 }
 
+/*
+///DocStringBegin
+detail: array_remove_undefined(<Array>: array): array
+summary: Returns an array by removing all undefined values from the original array. Returns the updated array.
+///DocStringEnd
+*/
 array_remove_undefined(array)
 {
 	result = [];
@@ -472,6 +678,12 @@ array_remove_undefined(array)
 	return result;
 }
 
+/*
+///DocStringBegin
+detail: array_reverse(<Array>: array): array
+summary: Returns a new array with the elements of the original array in reverse order.
+///DocStringEnd
+*/
 array_reverse(array)
 {
 	result = [];
@@ -480,6 +692,12 @@ array_reverse(array)
 	return result;
 }
 
+/*
+///DocStringBegin
+detail: array_random_item(<Array>: array): any
+summary: Returns a random item from the array. If the array is empty, returns undefined.
+///DocStringEnd
+*/
 array_random_item(array)
 {
 	result = [];
@@ -490,6 +708,12 @@ array_random_item(array)
 	return result[randomint(result.size)];
 }
 
+/*
+///DocStringBegin
+detail: array_randomize(<Array>: array): array
+summary: Shuffles the elements of the array in place using the Fisher-Yates algorithm and returns the shuffled array.
+///DocStringEnd
+*/
 array_randomize(array)
 {
     for (i = array.size - 1; i > 0; i--)
@@ -502,6 +726,12 @@ array_randomize(array)
     return array;
 }
 
+/*
+///DocStringBegin
+detail: array_sort(<Array>: array, <bool>: ascending): array
+summary: Sorts the elements of the array in-place. If ascending is true, sorts in ascending order; otherwise, sorts in descending order. Returns the sorted array.
+///DocStringEnd
+*/
 array_sort(array, ascending)
 {
     for (i = 0; i < array.size - 1; i++)
@@ -519,6 +749,12 @@ array_sort(array, ascending)
     return array;
 }
 
+/*
+///DocStringBegin
+detail: array_merge_sort(<Array>: array): array
+summary: Sorts the array using the merge sort algorithm. Recursively divides the array into halves, sorts each half, and then merges the sorted halves. Returns the sorted array.
+///DocStringEnd
+*/
 array_merge_sort(array)
 {
     if (array.size <= 1) return array;
@@ -528,6 +764,12 @@ array_merge_sort(array)
     return array_merge(left, right);
 }
 
+/*
+///DocStringBegin
+detail: array_merge(<Array>: left, <Array>: right): array
+summary: Merges two sorted arrays, left and right, into a single sorted array. Returns the merged sorted array.
+///DocStringEnd
+*/
 array_merge(left, right)
 {
     result = [];
@@ -563,6 +805,12 @@ array_merge(left, right)
     return result;
 }
 
+/*
+///DocStringBegin
+detail: array_quick_sort(<Array>: array): array
+summary: Sorts the array using the quicksort algorithm. It recursively divides the array into smaller sub-arrays around a pivot and combines the sorted results.
+///DocStringEnd
+*/
 array_quick_sort(array)
 {
     if (array.size <= 1)
@@ -581,6 +829,12 @@ array_quick_sort(array)
     return array_combine_3(array_quick_sort(left), [pivot], array_quick_sort(right));
 }
 
+/*
+///DocStringBegin
+detail: array_index_swap(<Array>: array, <Integer>: index1, <Integer>: index2): array
+summary: Swaps the elements at the specified indices in the array and returns the modified array.
+///DocStringEnd
+*/
 array_index_swap(array, index1, index2) 
 {
 	temp = array[index1];          
@@ -589,6 +843,12 @@ array_index_swap(array, index1, index2)
 	return array;         
 }
 
+/*
+///DocStringBegin
+detail: array_binary_search(<Array>: array, <Any>: target): int
+summary: Performs a binary search on a sorted array to find the index of the target value. Returns the index if found, otherwise returns undefined.
+///DocStringEnd
+*/
 array_binary_search(array, target)
 {
     low = 0;
@@ -608,6 +868,12 @@ array_binary_search(array, target)
     return undefined;
 }
 
+/*
+///DocStringBegin
+detail: array_chunk(<Array>: array, <Integer>: size): array
+summary: Splits the array into chunks of the specified size and returns an array of these chunks.
+///DocStringEnd
+*/
 array_chunk(array, size)
 {
     chunks = [];
@@ -619,6 +885,12 @@ array_chunk(array, size)
     return chunks;
 }
 
+/*
+///DocStringBegin
+detail: array_flatten(<Array>: array): array
+summary: Recursively flattens a multi-dimensional array into a single-dimensional array.
+///DocStringEnd
+*/
 array_flatten(array)
 {
     flat = [];
@@ -632,6 +904,12 @@ array_flatten(array)
     return flat;
 }
 
+/*
+///DocStringBegin
+detail: array_min(<Array>: array): any
+summary: Returns the minimum value from the array.
+///DocStringEnd
+*/
 array_min(array)
 {
     min = array[0];
@@ -643,6 +921,12 @@ array_min(array)
     return min;
 }
 
+/*
+///DocStringBegin
+detail: array_max(<Array>: array): any
+summary: Returns the maximum value from the array.
+///DocStringEnd
+*/
 array_max(array)
 {
     max = array[0];
@@ -654,16 +938,34 @@ array_max(array)
     return max;
 }
 
+/*
+///DocStringBegin
+detail: array_is_blank(<Array>: array): bool
+summary: Checks if the array is either undefined or empty. Returns true if it is blank, otherwise returns false.
+///DocStringEnd
+*/
 array_is_blank(array) 
 { 
 	return !isDefined(array) || array.size == 0; 
 }
 
+/*
+///DocStringBegin
+detail: filter_equal(<Any>: i, <Any>: arg1): bool
+summary: Compares a value i to arg1 and returns true if they are equal, otherwise returns false.
+///DocStringEnd
+*/
 filter_equal(i, arg1)
 { 
 	return i == arg1; 
 }
 
+/*
+///DocStringBegin
+detail: filter_not_equal(<Any>: i, <Any>: arg1): bool
+summary: Compares a value i to arg1 and returns true if they are not equal, otherwise returns false.
+///DocStringEnd
+*/
 filter_not_equal(i, arg1) 
 { 
 	return i != arg1; 
