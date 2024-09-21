@@ -14,7 +14,7 @@
 
 /*
 ///DocStringBegin
-detail: attach_is_alt(<String>: attach): bool
+detail: attach_is_alt(attach: <String>): <Bool>
 summary: Returns true if attachment is alternative weapon, (Grenade Launcher or a shotgun).
 ///DocStringEnd
 */
@@ -25,7 +25,7 @@ attach_is_alt(attach)
 
 /*
 ///DocStringBegin
-detail: attach_is_shotgun(<String>: attach): bool
+detail: attach_is_shotgun(attach: <String>): <Bool>
 summary: Return true if attachment is a shotgun. 
 ///DocStringEnd
 */
@@ -36,7 +36,7 @@ attach_is_shotgun(attach)
 
 /*
 ///DocStringBegin
-detail: attach_is_sight(<String>: attach): bool
+detail: attach_is_sight(attach: <String>): <Bool>
 summary: Returns true if the attachment is sight.
 ///DocStringEnd
 */
@@ -47,7 +47,7 @@ attach_is_sight(attach)
 
 /*
 ///DocStringBegin
-detail: attach_is_gl(<String>: attach): bool
+detail: attach_is_gl(attach: <String>): <Bool>
 summary: Returns true if the attachment is Grenade Launcher.
 ///DocStringEnd
 */
@@ -58,7 +58,7 @@ attach_is_gl(attach)
 
 /*
 ///DocStringBegin
-detail: attach_is_akimbo(<String>: attach): bool
+detail: attach_is_akimbo(attach: <String>): <Bool>
 summary: Returns true if the attachment is dual weapon.
 ///DocStringEnd
 */
@@ -69,7 +69,7 @@ attach_is_akimbo(attach)
 
 /*
 ///DocStringBegin
-detail: attach_is_camo(<String>: attach): bool
+detail: attach_is_camo(attach: <String>): <Bool>
 summary: Returns true if the attachment is a camouflage.
 ///DocStringEnd
 */
@@ -80,7 +80,7 @@ attach_is_camo(attach)
 
 /*
 ///DocStringBegin
-detail: attach_is_combo(<String>: attach, <StringArray>: attachs): bool
+detail: attach_is_combo(attach: <String>, attachs: <StringArray>): <Bool>
 summary: Returns true if attachment has a valid combination with attachs array.
 ///DocStringEnd
 */
@@ -97,7 +97,7 @@ attach_is_combo(attach, attachs)
 
 /*
 ///DocStringBegin
-detail: attach_get_basename(<String>: attach): string
+detail: attach_get_basename(attach: <String>): <String>
 summary: Returns the base name of the attachment used for build weapon.
 ///DocStringEnd
 */
@@ -127,11 +127,9 @@ attach_get_basename(attach)
 	return attach;
 }
 
-//attach_get_buildname(attach, weapon)
-
 /*
 ///DocStringBegin
-detail: attach_get_camo_index(<String>: camo): int
+detail: attach_get_camo_index(camo: <String>): <Int>
 summary: Returns the index of the camouflage based on its name.
 ///DocStringEnd
 */
@@ -144,7 +142,7 @@ attach_get_camo_index(camo)
 
 /*
 ///DocStringBegin
-detail: attach_get_camos(): stringArray
+detail: attach_get_camos(): <StringArray>
 summary: Returns an array of camo names formatted to build weapon.
 ///DocStringEnd
 */
@@ -155,10 +153,9 @@ attach_get_camos()
 		camos[camos.size] = i < 10 ? "camo0" + i : "camo" + i;
 	return camos;
 }
-
 /*
 ///DocStringBegin
-detail: attach_get_combos(<String>: attach, <Array>: attachs): stringArray
+detail: attach_get_combos(attach: <String>, attachs: <Array>): <StringArray>
 summary: Returns an array of valid attachments combinations with the specified attach.
 ///DocStringEnd
 */
@@ -177,8 +174,8 @@ attach_get_combos(attach, attachs)
 
 /*
 ///DocStringBegin
-detail: attach_get_random(<String>: weapon_basename, <Integer>: attachs_count = 2, <Bool>: return_builded = true, <Bool>: include_none = false): stringArray
-summary: Returns an array of random attachments for a specified weapon. The number of attachments can be specified. If include_none is true, some slots may be left empty. If return_builded is true result be a builded attach.
+detail: attach_get_random(weapon_basename: <String>, attachs_count?: <Integer> = 2, return_builded?: <Bool> = true, include_none?: <Bool> = false): <StringArray>
+summary: Returns an array of random attachments for a specified weapon. The number of attachments can be specified. If include_none is true, some slots may be left empty. If return_builded is true, the result will be a built attachment.
 ///DocStringEnd
 */
 attach_get_random(weapon_basename, attachs_count, return_builded, include_none)
@@ -218,22 +215,21 @@ attach_get_random(weapon_basename, attachs_count, return_builded, include_none)
 	
 	return attachs;
 }
-
 /*
 ///DocStringBegin
-detail: attach_get_type(<String>: attach): string
+detail: attach_get_type(attach: <String>): <String>
 summary: Returns the type of the attachment.
 ///DocStringEnd
 */
 attach_get_type(attach)
 {
-	return tableLookup( "mp/attachmentTable.csv", 4, attach, 2);		
+	return tableLookup("mp/attachmentTable.csv", 4, attach, 2);		
 }
 
 /*
 ///DocStringBegin
-detail: attach_build_rail(<String>: attach, <String>: weapon_basename, <String>: weapon_class): string
-summary: Returns builded weapon sight.
+detail: attach_build_rail(attach: <String>, weapon_basename: <String>, weapon_class: <String>): <String>
+summary: Returns built weapon sight.
 ///DocStringEnd
 */
 attach_build_rail(attach, weapon_basename, weapon_class)
@@ -251,8 +247,8 @@ attach_build_rail(attach, weapon_basename, weapon_class)
 
 /*
 ///DocStringBegin
-detail: attach_build_vzscope(<String>: weapon_basename): string
-summary: Returns builded sniper scope.
+detail: attach_build_vzscope(weapon_basename: <String>): <String>
+summary: Returns built sniper scope.
 ///DocStringEnd
 */
 attach_build_vzscope(weapon_basename)
@@ -262,8 +258,8 @@ attach_build_vzscope(weapon_basename)
 
 /*
 ///DocStringBegin
-detail: attach_build_gl(<String>: weapon_basename): string
-summary: Returns builded grenade launcher attachment.
+detail: attach_build_gl(weapon_basename: <String>): <String>
+summary: Returns built grenade launcher attachment.
 ///DocStringEnd
 */
 attach_build_gl(weapon_basename)
@@ -282,8 +278,8 @@ attach_build_gl(weapon_basename)
 
 /*
 ///DocStringBegin
-detail: attach_build_silencer(<String>: weapon_class): string
-summary: Returns builded silencer.
+detail: attach_build_silencer(weapon_class: <String>): <String>
+summary: Returns built silencer.
 ///DocStringEnd
 */
 attach_build_silencer(weapon_class)
@@ -303,8 +299,8 @@ attach_build_silencer(weapon_class)
 
 /*
 ///DocStringBegin
-detail: attach_build_camo(<Integer>: index): string
-summary: Returns a builded camouflage.
+detail: attach_build_camo(index: <Integer>): <String>
+summary: Returns a built camouflage.
 ///DocStringEnd
 */
 attach_build_camo(index)
@@ -315,8 +311,8 @@ attach_build_camo(index)
 
 /*
 ///DocStringBegin
-detail: attach_build(<String>: attach, <String>: weapon_basename): string
-summary: Returns builded any attachment.
+detail: attach_build(attach: <String>, weapon_basename: <String>): <String>
+summary: Returns built any attachment.
 ///DocStringEnd
 */
 attach_build(attach, weapon_basename)
