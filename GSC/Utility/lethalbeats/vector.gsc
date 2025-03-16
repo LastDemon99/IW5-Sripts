@@ -1,4 +1,3 @@
-
 /*
 ============================
 |   Lethal Beats Team	   |
@@ -10,7 +9,7 @@
 ============================
 */
 
-#include scripts\lethalbeats\math;
+#include lethalbeats\math;
 
 /*
 ///DocStringBegin
@@ -495,17 +494,6 @@ vector_distance2d(vec1, vec2)
 
 /*
 ///DocStringBegin
-detail: vector_to_string(vec: <Vector>): <String>
-summary: Converts the vector to a string representation.
-///DocStringEnd
-*/
-vector_to_string(vec)
-{
-    return "(" + scripts\lethalbeats\string::string_join(", ", [vec[0], vec[1], vec[2]]) + ")";
-}
-
-/*
-///DocStringBegin
 detail: vector_to_angles(vec: <Vector>): <Vector>
 summary: Converts the vector to angles.
 ///DocStringEnd
@@ -513,17 +501,6 @@ summary: Converts the vector to angles.
 vector_to_angles(vec)
 {
     return vectortoangles(vec);
-}
-
-/*
-///DocStringBegin
-detail: vector_print(vec: <Vector>): <Void>
-summary: Prints the vector to the console.
-///DocStringEnd
-*/
-vector_print(vec)
-{
-    print(vector_to_string(vec));
 }
 
 /*

@@ -1,12 +1,11 @@
 #define TABLE "mp/dynamic_shop.csv"
 
-#define PAGE_NULL -1
-
 #define OPTION_BUY -5
 #define OPTION_DISABLE -4
 #define OPTION_OWNED -3
 #define OPTION_UPGRADE -2
 #define OPTION_SCRIPTRESPONSE -1
+// OPTION >= 0 -> item_price
 
 init()
 {
@@ -32,6 +31,14 @@ onMenuResponse()
     for (;;)
     {
         self waittill("menuresponse",  menu, response);
+
+		if (menu == "class" && response == "back")
+		{
+			self closepopupMenu();
+			self closeInGameMenu();
+			continue;
+		}
+		
 		if (menu != "dynamic_shop") continue;
 
 		if (response == "close_self")
@@ -141,7 +148,7 @@ getIndex(page, item)
 
 buyItem(price)
 {
-	self lethalbeats\survival\_utility::setScore(self.score - int(price));
+	if (isDefined(level.setMoney)) [[level.setMoney]](self.score - int(price));
     self playLocalSound("arcademode_checkpoint");
     self updateLabels();
 }
@@ -150,6 +157,6 @@ shopInit(menu)
 {
     self.shop = spawnstruct();
     self.shop.menu = menu;
-    self.shop.page = PAGE_NULL;
+    self.shop.page = -1;
     self.shop.owner = self;
 }

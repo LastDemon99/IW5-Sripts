@@ -9,9 +9,20 @@
 ============================
 */
 
-#include scripts\lethalbeats\string;
-#include scripts\lethalbeats\array;
-#include scripts\lethalbeats\weapon;
+#include lethalbeats\string;
+#include lethalbeats\array;
+#include lethalbeats\weapon;
+
+/*
+///DocStringBegin
+detail: player_suicide(): <Void>
+summary: Engine functions cannot be sent as a pointer so this wrapper is used to ::suicide
+///DocStringEnd
+*/
+player_suicide()
+{
+	self suicide();
+}
 
 player_count(team, alives)
 {
@@ -25,18 +36,6 @@ player_count(team, alives)
 	return count;
 }
 
-player_get_list(team, alives)
-{
-	players = [];
-	foreach (player in level.players)
-	{
-		if (isDefined(alives) && isAlive(player) != alives) continue;
-		if (isDefined(team) && player.team != team) continue;
-		players[players.size] = player;
-	}
-	return players;
-}
-
 player_give_weapon(weapon, variant, dualWieldOverRide)
 {
 	if (!string_contains(weapon, "_mp_") && !string_ends_with(weapon, "_mp"))
@@ -45,7 +44,7 @@ player_give_weapon(weapon, variant, dualWieldOverRide)
 	if (!isDefined(variant))
 		variant = -1;
 	
-	if ( string_contains( weapon, "_akimbo" ) || isDefined(dualWieldOverRide) && dualWieldOverRide == true)
+	if (string_contains(weapon, "_akimbo") || isDefined(dualWieldOverRide) && dualWieldOverRide == true)
 		self giveWeapon(weapon, variant, true);
 	else
 		self giveWeapon(weapon, variant, false);
@@ -64,6 +63,83 @@ player_give_spawn_weapon(weapon, switch_to_weapon)
 		self setSpawnWeapon(weapon);
 }
 
+player_give_start_ammo(perkName)
+{
+	self giveStartAmmo(perkName);
+}
+
+player_give_max_ammo(weapon)
+{
+	if (!isDefined(weapon)) weapon = self getCurrentWeapon();
+	self giveMaxAmmo(weapon);
+	self setWeaponAmmoClip(weapon, weaponClipSize(weapon));
+	if (string_starts_with(weapon, "alt_")) return;
+	if (weapon_has_attach_akimbo(weapon)) self setWeaponAmmoClip(weapon, weaponClipSize(weapon), "left");
+	if (weapon_has_attach_alt(weapon))
+	{
+		weapon = "alt_" + weapon;
+		self giveMaxAmmo(weapon);
+		self setWeaponAmmoClip(weapon, weaponClipSize(weapon));
+	}
+}
+
+player_set_offhand_primary_class(class)
+{
+	self setOffhandPrimaryClass(class);
+}
+
+player_set_offhand_secondary_class(class)
+{
+	self setOffhandPrimaryClass(class);
+}
+
+player_give_perk(perkName, useSlot)
+{
+	if (!isDefined(useSlot)) useSlot = false;
+
+	if (string_contains(perkName, "_mp"))
+	{
+		switch(perkName)
+		{
+			case "frag_grenade_mp":
+				self setOffhandPrimaryClass("frag");
+				break;
+			case "throwingknife_mp":
+				self setOffhandPrimaryClass("throwingknife");
+				break;
+			case "trophy_mp":
+				self setOffhandSecondaryClass("flash");
+				break;
+		}
+
+		self player_give_weapon(perkName, 0);
+		self giveStartAmmo(perkName);
+		self player_set_perk(perkName, useSlot);
+		return;
+	}
+
+	if(string_contains(perkName, "specialty_weapon_"))
+	{
+		self player_set_perk(perkName, useSlot);
+		return;
+	}
+
+	self player_set_perk(perkName, useSlot);
+	self player_set_extra_perks(perkName);
+}
+
+player_set_extra_perks(perkName)
+{
+	if(perkName == "specialty_coldblooded")
+		self player_give_perk("specialty_heartbreaker", false);
+	if(perkName == "specialty_fasterlockon")
+		self player_give_perk("specialty_armorpiercing", false);
+	if(perkName == "specialty_spygame")
+		self player_give_perk("specialty_empimmune", false);
+	if(perkName == "specialty_rollover")
+		self player_give_perk("specialty_assists", false);
+}
+
 player_set_perk(perkName, useSlot)
 {
 	self.perks[perkName] = true;
@@ -74,6 +150,21 @@ player_set_perk(perkName, useSlot)
 	self setPerk(perkName, !isDefined(level.scriptPerks[perkName]), useSlot);
 }
 
+player_unset_Perk(perkName)
+{
+	self.perks[perkName] = undefined;
+	if (isDefined(level.perkUnsetFuncs[perkName]))
+		self thread [[level.perkUnsetFuncs[perkName]]]();
+	self unsetPerk(perkName, !isDefined(level.scriptPerks[perkName]));
+}
+
+player_has_perk(perkName)
+{
+	if (isDefined(self.perks[perkName]))
+		return true;	
+	return false;
+}
+
 player_refill_ammo()
 {
     level endon("game_ended");
@@ -82,13 +173,10 @@ player_refill_ammo()
     for (;;)
     {
         self waittill("reload");
-		
 		if(player_is_infect(self)) break;
-		
-		currWep = self getCurrentWeapon();
-		
-		if(currWep == "riotshield_mp" || !isDefined(currWep)) continue;		
-		self giveMaxAmmo(currWep);
+		weapon = self getCurrentWeapon();
+		if(!isDefined(weapon) || weapon_get_class(weapon) == "riot") continue;
+		self giveMaxAmmo(weapon);
     }
 }
 
@@ -99,16 +187,21 @@ player_refill_single_count_ammo()
 
     for (;;)
     {
-		wait 0.3;
+		wait 0.5;
 		if(player_is_infect(self)) break;
-		
-		currWep = self getCurrentWeapon();
-		if(currWep == "riotshield_mp" || !isDefined(currWep)) continue;		
-        if (isAlive(self) && self getammocount(currWep) == 0) self notify("reload");
+		weapon = self getCurrentWeapon();
+		if (!isDefined(weapon) || weapon_get_class(weapon) != "riot" && self getammocount(weapon) == 0)
+        {
+            wait 2;
+            self notify("reload");
+            wait 1;
+            continue;
+        }
+        wait 0.05;
 	}
 }
 
-player_refill_nades()
+player_nades_refill()
 {
 	self endon("disconnect");
 	level endon("game_ended");
@@ -119,12 +212,12 @@ player_refill_nades()
 		
 		if(player_is_infect(self)) break;
 		
-		if(array_contains(weaponName, level.weapons["lethal"]))
+		if(array_contains(level.weapons["lethal"], weaponName))
 		{
 			if(weaponName != "c4_mp") wait(1);
 			else wait(3);
 		}
-		else if(array_contains(weaponName, level.weapons["tactical"])) wait(4);
+		else if(array_contains(level.weapons["tactical"], weaponName)) wait(4);
 		
 		if(weaponName == "scrambler_mp") self thread maps\mp\gametypes\_scrambler::setScrambler();
 		else if (weaponName == "portable_radar_mp") self thread maps\mp\gametypes\_portable_radar::setPortableRadar();
@@ -164,7 +257,7 @@ player_give_nade(grenade, slot)
 	
 	if(string_contains(grenade, "sp"))
 	{
-		self givePerk(grenade, false);
+		self player_give_perk(grenade, false);
 		return;
 	}
 	
@@ -185,47 +278,133 @@ player_is_flashed()
 	return gettime() < self.flashEndTime;
 }
 
-player_get_primaries()
+/*
+///DocStringBegin
+detail: player_get_list(team?: <String | Undefined>, alives?: <Boolean | Undefined>): <Entity[]>
+summary: Returns an array of players optionally filtered by team and alive status.
+///DocStringEnd
+*/
+player_get_list(team, alives)
 {
-	weapons = self getWeaponsListPrimaries();
-	result = [];
-	foreach(wep in weapons)
-		if (!string_starts_with(wep, "alt_"))
-			result[result.size] = wep;
-	return result;
+	players = [];
+	foreach (player in level.players)
+	{
+		if (isDefined(alives) && isAlive(player) != alives) continue;
+		if (isDefined(team) && player.team != team) continue;
+		players[players.size] = player;
+	}
+	return players;
 }
 
+player_get_perks()
+{
+	return array_get_keys(self.perks);
+}
+
+player_get_weapons_buffs()
+{
+	return array_filter(self player_get_perks(), lethalbeats\perk::perk_is_weapon_buff);
+}
+
+/*
+///DocStringBegin
+detail: <Player> player_get_weapons(returnsAltWeapon: <Bool | Undefined>): <Bool>
+summary: Returns a player weapons list.
+///DocStringEnd
+*/
+player_get_weapons(returnsAltWeapon)
+{
+	if (!isDefined(returnsAltWeapon)) returnsAltWeapon = false;
+	return returnsAltWeapon ? self getWeaponsList("primary") : array_filter(self getWeaponsList("primary"), ::filter_not_starts_with, "alt_");
+}
+
+player_get_primary()
+{
+	primary = self getWeaponsListPrimaries()[0];
+	if (isDefined(primary) && primary == "none") return undefined;
+	return primary;
+}
+
+player_get_secondary()
+{
+	secondary = self getWeaponsListPrimaries()[1];
+	if (isDefined(secondary) && secondary == "none") return undefined;
+	return secondary;
+}
+
+player_get_weapon_index(weapon, baseNameFormat)
+{
+	if (!isDefined(baseNameFormat)) baseNameFormat = false;
+	return int(self player_is_weapon_secondary(weapon, baseNameFormat));
+}
+
+player_is_weapon_primary(weapon, baseNameFormat)
+{
+	if (!isDefined(baseNameFormat)) baseNameFormat = false;
+	weaponTarget = self getWeaponsListPrimaries()[0];
+	if (!isDefined(weaponTarget)) return false;
+	if (!baseNameFormat) return weapon == weaponTarget;
+	return weapon_get_baseName(weapon) == weapon_get_baseName(weaponTarget);
+}
+
+player_is_weapon_secondary(weapon, baseNameFormat)
+{
+	if (self getWeaponsListPrimaries().size == 1) return false;
+	if (!isDefined(baseNameFormat)) baseNameFormat = false;
+	weaponTarget = self getWeaponsListPrimaries()[1];
+	if (!isDefined(weaponTarget)) return false;
+	if (!baseNameFormat) return weapon == weaponTarget;
+	return weapon_get_baseName(weapon) == weapon_get_baseName(weaponTarget);
+}
+
+/*
+///DocStringBegin
+detail: <Player> player_get_build_weapon(baseName: <String>): <String | Undefined>
+summary: Returns a weapon owned by the player if it matches the given base name, ignoring attachments, or returns undefined if the weapon is not found.
+///DocStringEnd
+*/
 player_get_build_weapon(baseName)
 {
-	weapons = self getWeaponsListPrimaries();
-    foreach(weapon in weapons)
-		if (getBaseWeaponName(weapon) == baseName) return weapon;
-    return undefined;
+	weapons = self player_get_weapons();
+    return array_find(weapons, lethalbeats\string::string_contains, baseName);
 }
 
-player_has_weapon(weapon)
+player_get_fraction_ammo(weapon) 
 {
-	if (string_contains(weapon, "_mp"))
-		return self hasWeapon(weapon);
-    return isDefined(player_get_build_weapon(weapon));
+    if (weapon_has_attach_akimbo(weapon))
+	{
+        weaponLeftFraction = (self getFractionMaxAmmo(weapon) * 0.475) + ((self getWeaponAmmoClip(weapon) / weaponClipSize(weapon)) * 0.025);
+        weaponRightFraction = (self getFractionMaxAmmo(weapon) * 0.475) + ((self getWeaponAmmoClip(weapon, "left") / weaponClipSize(weapon)) * 0.025);
+        return weaponLeftFraction + weaponRightFraction;
+    } 
+	else if (weapon_has_attach_alt(weapon))
+	{
+        weaponFraction = (self getFractionMaxAmmo(weapon) * 0.75) + ((self getWeaponAmmoClip(weapon) / weaponClipSize(weapon)) * 0.05);
+        weapon = "alt_" + weapon;
+        if (weapon_has_attach_gl(weapon)) weaponAltFraction = (self getFractionMaxAmmo(weapon) * 0.1) + ((self getWeaponAmmoClip(weapon) / weaponClipSize(weapon)) * 0.1);
+        else weaponAltFraction = (self getFractionMaxAmmo(weapon) * 0.15) + ((self getWeaponAmmoClip(weapon) / weaponClipSize(weapon)) * 0.05);
+        return weaponFraction + weaponAltFraction;
+    }
+
+    return (self getFractionMaxAmmo(weapon) * 0.95) + ((self getWeaponAmmoClip(weapon) / weaponClipSize(weapon)) * 0.05);
+}
+
+/*
+///DocStringBegin
+detail: <Player> player_has_weapon(weapon: <String>, relative: <Boolean | Undefined>): <Boolean>
+summary: Checks if the player possesses a specific weapon. If `relative` is true, it determines possession based on the base name of the weapon, ignoring attachments.
+///DocStringEnd
+*/
+player_has_weapon(weapon, relative)
+{
+	weapon = weapon_get_baseName(weapon);
+	if (isDefined(relative) && relative) return isDefined(self player_get_build_weapon(weapon));
+	return self hasWeapon(weapon);
 }
 
 player_has_max_ammo(weapon)
 {
-	hasMaxClip = weaponClipSize(weapon) == self getWeaponAmmoClip(weapon);
-	hasMaxStock = int(self getFractionMaxAmmo(weapon)) == 1;
-
-	if (hasAkimbo(weapon))
-	{
-		hasMaxClip = hasMaxClip && weaponClipSize(weapon) == self getWeaponAmmoClip(weapon, "left");
-	}
-	else if (hasAltAttach(weapon))
-	{
-		hasMaxClip = hasMaxClip && weaponClipSize("alt_" + weapon) == self getWeaponAmmoClip("alt_" + weapon);
-		hasMaxStock = hasMaxStock && int(self getFractionMaxAmmo("alt_" + weapon)) == 1;
-	}
-
-	return hasMaxClip && hasMaxStock;
+	return self player_get_fraction_ammo(weapon) == 1;
 }
 
 player_has_killstreak()
@@ -236,9 +415,8 @@ player_has_killstreak()
 player_save_ammo(weapon, key)
 {
 	if (!isDefined(key)) key = weapon;
-	attachs = get_current_attachs(weapon);
 
-	if (array_any(attachs, ::isAltAttach))
+	if (weapon_has_attach_alt(weapon))
 	{
 		self.restoreWeaponClipAmmo["alt_" + key] = self getWeaponAmmoClip("alt_" + weapon);
 		self.restoreWeaponStockAmmo["alt_" + key] = self getWeaponAmmoStock("alt_" + weapon);
@@ -247,7 +425,7 @@ player_save_ammo(weapon, key)
 		return;
 	}
 
-	if (array_contains(attachs, "akimbo"))
+	if (weapon_has_attach_akimbo(weapon))
 	{
 		self.restoreWeaponClipAmmo["left_" + key] = self getWeaponAmmoClip(weapon, "left");
 		self.restoreWeaponClipAmmo["right_" + key] = self getWeaponAmmoClip(weapon, "right");
@@ -275,4 +453,38 @@ player_restore_ammo(weapon, key)
 	}
 	else self setWeaponAmmoClip(weapon, self.restoreWeaponClipAmmo[key]);
 	self setWeaponAmmoStock(weapon, self.restoreWeaponStockAmmo[key]);
+}
+
+player_enable_usability()
+{
+	self.disabledUsability--;	
+	if (!self.disabledUsability)
+		self EnableUsability();
+}
+
+/*
+///DocStringBegin
+detail: players_play_sound(sound: <String>, team?: <String>, excludeTargets?: <Player[]>): <Void>
+summary: Play local sounds on players. You can optionally specify the equipment or exclude players based on array.
+///DocStringEnd
+*/
+players_play_sound(sound, team, excludeTargets)
+{	
+	if (isDefined(team)) targets = player_get_list(team);
+	else targets = level.players;
+	if (isDefined(excludeTargets)) targets = array_difference(targets, excludeTargets);
+	foreach(player in targets)
+		player playLocalSound(sound);
+}
+
+player_take_weapon(weapon)
+{
+	if (!isDefined(weapon)) weapon = self getCurrentWeapon();
+	self takeWeapon(weapon);
+}
+
+player_take_all_weapon_buffs()
+{
+	foreach(buff in self player_get_weapons_buffs())
+		self player_unset_Perk(buff);
 }

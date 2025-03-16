@@ -9,8 +9,23 @@
 ============================
 */
 
-#include scripts\lethalbeats\string;
-#include scripts\lethalbeats\weapon;
+#include lethalbeats\weapon;
+
+#define ATTACH_TABLE "mp/attachmentTable.csv"
+#define ATTACH_COMBO_TABLE "mp/attachmentCombos.csv"
+#define CAMO_TABLE "mp/camoTable.csv"
+
+#define SILENCER "silencer"
+#define SILENCER02 "silencer02"
+#define SILENCER03 "silencer03"
+#define SHOTGUN "shotgun"
+#define GL "gl"
+#define M320 "m320"
+#define GP25 "gp25"
+#define RAIL "rail"
+#define SCOPEVZ "scopevz"
+#define VZSCOPE "vzscope"
+#define CAMO "camo"
 
 /*
 ///DocStringBegin
@@ -31,7 +46,7 @@ summary: Return true if attachment is a shotgun.
 */
 attach_is_shotgun(attach)
 {
-	return attach == "shotgun";
+	return attach == SHOTGUN;
 }
 
 /*
@@ -42,7 +57,7 @@ summary: Returns true if the attachment is sight.
 */
 attach_is_sight(attach)
 {
-	return attach_get_type(attach) == "rail" || attach == "zoomscope";
+	return attach_get_type(attach) == RAIL || attach == "zoomscope" || isEndStr(attach, "scopevz");
 }
 
 /*
@@ -53,7 +68,7 @@ summary: Returns true if the attachment is Grenade Launcher.
 */
 attach_is_gl(attach)
 {
-	return attach == "gl" || attach == "m320" || attach == "gp25";
+	return attach == GL || attach == M320 || attach == GP25;
 }
 
 /*
@@ -75,7 +90,7 @@ summary: Returns true if the attachment is a camouflage.
 */
 attach_is_camo(attach)
 {
-	return string_starts_with(attach, "camo");
+	return lethalbeats\string::string_starts_with(attach, CAMO);
 }
 
 /*
@@ -86,10 +101,10 @@ summary: Returns true if attachment has a valid combination with attachs array.
 */
 attach_is_combo(attach, attachs)
 {
-	colIndex = tableLookupRowNum("mp/attachmentCombos.csv", 0, attach);
+	colIndex = tableLookupRowNum(ATTACH_COMBO_TABLE, 0, attach);
 	for (i = 0; i < attachs.size; i++)
 	{
-		if (tableLookup("mp/attachmentCombos.csv", 0, attachs[i], colIndex) == "no")
+		if (tableLookup(ATTACH_COMBO_TABLE, 0, attachs[i], colIndex) == "no")
 			return false;
 	}
 	return true;
@@ -105,12 +120,12 @@ attach_get_basename(attach)
 {
 	switch(attach)
 	{
-		case "silencer02":
-		case "silencer03":
-			return "silencer";
-		case "gp25":
-		case "m320":
-			return "gl";
+		case SILENCER02:
+		case SILENCER03:
+			return SILENCER;
+		case GP25:
+		case M320:
+			return GL;
 		case "eotechsmg":
 		case "eotechlmg":
 			return "eotech";
@@ -120,10 +135,9 @@ attach_get_basename(attach)
 			return "thermal";
 		case "reflexsmg":
 		case "reflexlmg":
-		case "reflexsmg":
 			return "reflex";
 	}
-	if (string_ends_with(attach, "scopevz")) return "vzscope";
+	if (isEndStr(attach, SCOPEVZ)) return VZSCOPE;
 	return attach;
 }
 
@@ -136,8 +150,8 @@ summary: Returns the index of the camouflage based on its name.
 attach_get_camo_index(camo)
 {
 	if (!isString(camo)) return camo;
-	if (string_starts_with(camo, "camo")) return int(string_get_substring(camo, 4, camo.size));
-	return int(tablelookup("mp/camoTable.csv", 1, camo, 0));
+	if (lethalbeats\string::string_starts_with(camo, CAMO)) return int(getSubStr(camo, 4, camo.size));
+	return int(tablelookup(CAMO_TABLE, 1, camo, 0));
 }
 
 /*
@@ -150,7 +164,7 @@ attach_get_camos()
 {
 	camos = [];
 	for(i = 1; i < 14; i++)
-		camos[camos.size] = i < 10 ? "camo0" + i : "camo" + i;
+		camos[camos.size] = i < 10 ? "camo0" + i : CAMO + i;
 	return camos;
 }
 /*
@@ -162,10 +176,10 @@ summary: Returns an array of valid attachments combinations with the specified a
 attach_get_combos(attach, attachs)
 {
 	attachmentCombos = [];
-	colIndex = tableLookupRowNum("mp/attachmentCombos.csv", 0, attach);	
+	colIndex = tableLookupRowNum(ATTACH_COMBO_TABLE, 0, attach);	
 	for (i = 0; i < attachs.size; i++)
 	{
-		if (tableLookup("mp/attachmentCombos.csv", 0, attachs[i], colIndex) == "no")
+		if (tableLookup(ATTACH_COMBO_TABLE, 0, attachs[i], colIndex) == "no")
 			continue;
 		attachmentCombos[attachmentCombos.size] = attachs[i];
 	}
@@ -194,13 +208,13 @@ attach_get_random(weapon_basename, attachs_count, return_builded, include_none)
 	
 	while(attachs_count != 0)
 	{
-		if (include_none && randomint(100) >= 50)
+		if (include_none && randomInt(100) >= 50)
 		{
 			attachs_count--;
 			continue;
 		}
 		
-		attach = scripts\lethalbeats\array::array_random_item(allowed_attachs);
+		attach = lethalbeats\array::array_random(allowed_attachs);
 		attachs[attachs.size] = attach;
 		allowed_attachs = attach_get_combos(attach, allowed_attachs);
 		attachs_count--;
@@ -209,7 +223,7 @@ attach_get_random(weapon_basename, attachs_count, return_builded, include_none)
 	if (return_builded)
 	{
 		for(i = 0; i < attachs.size; i++)
-			if (attach_get_type(attachs[i]) == "rail")
+			if (attach_get_type(attachs[i]) == RAIL)
 				attachs[i] = attach_build(attachs[i], weapon_basename);
 	}
 	
@@ -223,7 +237,7 @@ summary: Returns the type of the attachment.
 */
 attach_get_type(attach)
 {
-	return tableLookup("mp/attachmentTable.csv", 4, attach, 2);		
+	return tableLookup(ATTACH_TABLE, 4, attach, 2);		
 }
 
 /*
@@ -253,7 +267,7 @@ summary: Returns built sniper scope.
 */
 attach_build_vzscope(weapon_basename)
 {
-	return getSubStr(weapon_basename, 4, weapon_basename.size) + "scopevz";
+	return getSubStr(weapon_basename, 4, weapon_basename.size) + SCOPEVZ;
 }
 
 /*
@@ -267,12 +281,12 @@ attach_build_gl(weapon_basename)
 	switch(weapon_basename)
 	{
 		case "iw5_ak47":
-			return "gp25";
+			return GP25;
 		case "iw5_m4":
 		case "iw5_m16":
-			return "gl";
+			return GL;
 		default:
-			return "m320";
+			return M320;
 	}
 }
 
@@ -288,12 +302,12 @@ attach_build_silencer(weapon_class)
 	{
 		case "pistol":
 		case "machine_pistol":
-			return "silencer02";
-		case "shotgun":
+			return SILENCER02;
+		case SHOTGUN:
 		case "sniper":
-			return "silencer03";
+			return SILENCER03;
 		default:
-			return "silencer";
+			return SILENCER;
 	}
 }
 
@@ -306,7 +320,7 @@ summary: Returns a built camouflage.
 attach_build_camo(index)
 {
 	if (index == 0) return "";
-	return index < 10 ? "camo0" + index : "camo" + index;
+	return index < 10 ? "camo0" + index : CAMO + index;
 }
 
 /*
@@ -317,9 +331,9 @@ summary: Returns built any attachment.
 */
 attach_build(attach, weapon_basename)
 {
-	if (attach == "vzscope") return attach_build_vzscope(weapon_basename);	
-	if (attach == "gl") return attach_build_gl(weapon_basename);
+	if (attach == VZSCOPE) return attach_build_vzscope(weapon_basename);	
+	if (attach == GL) return attach_build_gl(weapon_basename);
 	wep_class = weapon_get_class(weapon_basename);
-	if (attach == "silencer") return attach_build_silencer(wep_class);
+	if (attach == SILENCER) return attach_build_silencer(wep_class);
 	return attach_build_rail(attach, weapon_basename, wep_class);
 }

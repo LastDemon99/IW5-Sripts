@@ -9,7 +9,7 @@
 ============================
 */
 
-#include scripts\lethalbeats\array;
+#include lethalbeats\array;
 /*
 ///DocStringBegin
 detail: math_sum(a: <Number>, b: <Number>): <Number>
@@ -185,7 +185,7 @@ math_length_squared(x, y, z)
 /*
 ///DocStringBegin
 detail: math_pow(base: <Number>, exponent: <Number>): <Number>
-summary: Returns the base raised to the power of exponent.
+summary: Returns the base raised to the power of exponent. Note int32 limitation min:`-2,147,483,648` max:`2,147,483,647`, out of ranges returns `0`.
 ///DocStringEnd
 */
 math_pow(base, exponent)

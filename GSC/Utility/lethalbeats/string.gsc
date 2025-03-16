@@ -28,26 +28,25 @@ summary: Returns a substring of the given string from start to end with the spec
 */
 string_slice(string, start, end, step)
 {
-    result = "";	
-    start = isDefined(start) ? start : 0;
-    end = isDefined(end) ? end : string.size;
-    step = !isDefined(step) || step == 0 ? 1 : step;
-    
+    result = "";    
+    if (!isDefined(step) || step == 0) step = 1;
+
     if (step > 0)
     {
+        if (!isDefined(start)) start = 0;
+        if (!isDefined(end)) end = string.size;
+        
         for (i = start; i < end && i < string.size; i += step)
             result += string[i];
-        return result;
     }
-    
-    if (step < 0)
+    else
     {
-        end = isDefined(end) ? end : -1;
-        for (i = start; i > end && i >= 0; i += step)
+        if (!isDefined(start) || start >= string.size) start = string.size - 1;
+        if (!isDefined(end)) end = -1;
+        
+        for (i = start; i >= end && i >= 0; i += step)
             result += string[i];
-        return result;
     }
-
     return result;
 }
 
@@ -139,14 +138,7 @@ summary: Checks if the given string starts with the specified substring.
 */
 string_starts_with(string, start)
 {
-    if (string.size < start.size)
-        return false;
-
-    for (i = 0 ; i < start.size ; i++)
-        if (!string_compare(string[i], start[i]))
-            return false;
-
-    return true;
+    return getsubstr(string, 0, start.size) == start;
 }
 
 /*
@@ -157,16 +149,7 @@ summary: Checks if the given string ends with the specified substring.
 */
 string_ends_with(string, end)
 {
-    if (string.size < end.size)
-        return false;
-    
-    end = string_reverse(end);
-    for (i = 0; i < end.size; i++)
-    {
-        if (!string_compare(string[string.size - i - 1], end[i]))
-            return false;
-    }
-    return true;	
+    return isEndStr(string, end);	
 }
 
 /*
@@ -191,8 +174,11 @@ string_join(string, array)
 {
     result = "";
     for(i = 0; i < array.size; i++)
+    {
+        if (!isDefined(array[i])) array[i] = "undefined";
         if (i == 0) result += array[i];
         else result += string + array[i];
+    }
     return result;
 }
 
@@ -231,6 +217,63 @@ string_replace(string, target, new_string)
         }
     }
     return result;
+}
+
+/*
+///DocStringBegin
+detail: string_replace_prefix(string: <String>, prefix: <String>, new_prefix: <String>): <String>
+summary: Replace the specified prefix from the beginning of the given string if it exists.
+///DocStringEnd
+*/
+string_replace_prefix(string, prefix, new_prefix)
+{
+    if (!string_starts_with(string, prefix)) return string;
+    return new_prefix + getSubStr(string, prefix.size, string.size);
+}
+
+/*
+///DocStringBegin
+detail: string_replace_suffix(string: <String>, suffix: <String>, new_suffix: <String>): <String>
+summary: Replace the specified suffix from the end of the given string if it exists.
+///DocStringEnd
+*/
+string_replace_suffix(string, suffix, new_suffix)
+{
+    if (!string_ends_with(string, suffix)) return string;
+    return getSubStr(string, 0, string.size - suffix.size) + new_suffix;
+}
+
+/*
+///DocStringBegin
+detail: string_remove(string: <String>, target: <String>): <String>
+summary: Removes all occurrences of the target substring from the given string.
+///DocStringEnd
+*/
+string_remove(string, target)
+{
+    return string_replace(string, target, "");
+}
+
+/*
+///DocStringBegin
+detail: string_remove_prefix(string: <String>, prefix: <String>): <String>
+summary: Removes the specified prefix from the beginning of the given string if it exists.
+///DocStringEnd
+*/
+string_remove_prefix(string, prefix)
+{
+    return string_replace_prefix(string, prefix, "");
+}
+
+/*
+///DocStringBegin
+detail: string_remove_suffix(string: <String>, suffix: <String>): <String>
+summary: Removes the specified suffix from the end of the given string if it exists.
+///DocStringEnd
+*/
+string_remove_suffix(string, suffix)
+{
+    return string_replace_suffix(string, suffix, "");
 }
 
 /*
@@ -298,7 +341,7 @@ detail: string_pad_left(string: <String>, pad: <String>, count: <Int>): <String>
 summary: Pads the given string on the left with the specified pad string, repeated the specified number of times.
 ///DocStringEnd
 */
-string_pad_left(string, pad, count)
+string_pad_left(string, count, pad)
 {
     return string_repeat(pad, count) + string;
 }
