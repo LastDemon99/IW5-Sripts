@@ -24,8 +24,10 @@ hud_create_elem(target, elemType, align, relative, x, y)
 	else if (isString(target)) hudElem = newTeamHudElem(target);
 	else hudElem = newhudelem();
 	
-    hudElem.target = target;
     if (isDefined(elemType)) hudElem.elemType = elemType;
+    else hudElem.elemType = "font"; // font, time, icon, bar, msgText
+
+    hudElem.target = target;
     hudElem.x = 0;
     hudElem.y = 0;
     hudElem.width = 0;
@@ -61,12 +63,14 @@ hud_create_timer(target, time, font, size, align, relative, x, y)
 
 /*
 ///DocStringBegin
-detail: hud_create_string(target: <Player> | <String>, text: <String>, font: <String>, size: <Float>, align: <String>, relative: <String>, x: <Float>, y: <Float>): <HudElement>
+detail: hud_create_string(target: <Player> | <String>, text: <String>, font: <String>, size: <Float>, align: <String>, relative: <String>, x: <Float | Undefined>, y: <Float | Undefined>): <HudElement>
 summary: Creates a player HUD string element with specified properties and returns it. The string is displayed on the screen with the given text, font, size, alignment, and position.
 ///DocStringEnd
 */
 hud_create_string(target, text, font, size, align, relative, x, y) 
 {
+    if (!isDefined(x)) x = 0;
+    if (!isDefined(y)) y = 0;
     hudText = hud_create_elem(target, "font", align, relative, x, y);
     hudText.font = font;
     hudText.fontscale = size;
@@ -98,26 +102,32 @@ hud_create_icon(target, shader, align, relative, x, y, width, height)
     return hudIcon;
 }
 
-hud_create_bar(target, color, width, height, flashFrac, selected)
+hud_create_bar(target, width, height, color, flashFrac)
 {
-    bar = hud_create_elem(target);
-    bar.frac = 0;
-    bar.color = color;
-    bar.sort = -2;
-    bar.shader = "progress_bar_fill";
-    bar setshader("progress_bar_fill", width, height);
+     if (!isDefined(color)) color = (1, 1, 1);
 
-    if (isdefined(flashFrac)) bar.flashfrac = flashFrac;
+    progressBar = hud_create_elem(target);
+    progressBar.frac = 0;
+    progressBar.color = color;
+    progressBar.sort = -2;
+    progressBar.shader = "progress_bar_fill";
+    progressBar.height = height - 2;
+    progressBar.width = width - 2;
+    progressBar setshader("progress_bar_fill", progressBar.width, progressBar.height);
 
-    barBg = hud_create_elem(target, "bar");
-    barBg.width = width;
-    barBg.height = height;
-    barBg.bar = bar;
-    barBg.sort = -3;
-    barBg.color = (0, 0, 0);
-    barBg.alpha = 0.5;
-    barBg setshader("progress_bar_bg", width, height);
-    return barBg;
+    if (isdefined(flashFrac)) progressBar.flashfrac = flashFrac;
+
+    primaryBar = hud_create_elem(target, "bar");
+    primaryBar.width = width;
+    primaryBar.height = height;
+    primaryBar.bar = progressBar;
+    primaryBar.sort = -3;
+    primaryBar.color = (0, 0, 0);
+    primaryBar.alpha = 0.5;
+    primaryBar setshader("progress_bar_bg", width, primaryBar.height);
+    primaryBar hud_set_point("CENTER", undefined, level.primaryprogressbarx, level.primaryprogressbary);
+
+    return primaryBar;
 }
 
 /*
@@ -166,8 +176,11 @@ hud_set_countdown(countTime, sound, endNotify, pulseEffect)
 
 hud_set_parent(element)
 {
-    if (isdefined(self.parent) && self.parent == element) return;
-    if (isdefined(self.parent)) self.parent hud_remove_child(self);
+    if (isdefined(self.parent))
+    {
+        if (self.parent == element) return;
+        else self.parent hud_remove_child(self);
+    }
 
     self.parent = element;
     self.parent hud_add_child(self);
@@ -205,7 +218,13 @@ hud_update_child()
     }
 }
 
-hud_set_point(point, relativePoint, xOffset, yOffset, moveTime)
+/*
+///DocStringBegin
+detail: <HudElem> hud_set_point(align: <String>, relative: <String>, xOffset: <Float>, yOffset: <Float>, moveTime: <Float | Undefined>): <Void>
+summary:
+///DocStringEnd
+*/
+hud_set_point(align, relative, xOffset, yOffset, moveTime)
 {
     if (!isdefined(moveTime))
         moveTime = 0;
@@ -224,39 +243,39 @@ hud_set_point(point, relativePoint, xOffset, yOffset, moveTime)
         yOffset = 0;
 
     self.yoffset = yOffset;
-    self.point = point;
+    self.point = align;
     self.alignx = "center";
     self.aligny = "middle";
 
-    if (issubstr(point, "TOP"))
+    if (issubstr(align, "TOP"))
         self.aligny = "top";
 
-    if (issubstr(point, "BOTTOM"))
+    if (issubstr(align, "BOTTOM"))
         self.aligny = "bottom";
 
-    if (issubstr(point, "LEFT"))
+    if (issubstr(align, "LEFT"))
         self.alignx = "left";
 
-    if (issubstr(point, "RIGHT"))
+    if (issubstr(align, "RIGHT"))
         self.alignx = "right";
 
-    if (!isdefined(relativePoint))
-        relativePoint = point;
+    if (!isdefined(relative))
+        relative = align;
 
-    self.relativepoint = relativePoint;
+    self.relativepoint = relative;
     relativeX = "center_adjustable";
     relativeY = "middle";
 
-    if (issubstr(relativePoint, "TOP"))
+    if (issubstr(relative, "TOP"))
         relativeY = "top_adjustable";
 
-    if (issubstr(relativePoint, "BOTTOM"))
+    if (issubstr(relative, "BOTTOM"))
         relativeY = "bottom_adjustable";
 
-    if (issubstr(relativePoint, "LEFT"))
+    if (issubstr(relative, "LEFT"))
         relativeX = "left_adjustable";
 
-    if (issubstr(relativePoint, "RIGHT"))
+    if (issubstr(relative, "RIGHT"))
         relativeX = "right_adjustable";
 
     if (element == level.uiparent)
@@ -327,15 +346,30 @@ hud_set_point(point, relativePoint, xOffset, yOffset, moveTime)
     switch (self.elemtype)
     {
         case "bar":
-            hud_set_point_bar(point, relativePoint, xOffset, yOffset);
+            _hud_set_point_bar(align, relative, xOffset, yOffset);
             break;
     }
 
     hud_update_child();
 }
 
-hud_set_point_bar(point, relativePoint, xOffset, yOffset)
+/*
+///DocStringBegin
+detail: <HudElem> _hud_set_point_bar(align: <String>, relativePoint: <String>, xOffset: <Float | Undefined>, yOffset: <Float | Undefined>): <Void>
+summary: 
+///DocStringEnd
+*/
+_hud_set_point_bar(align, relativePoint, xOffset, yOffset)
 {
+    if (!isDefined(self.bar))
+        return;
+
+    if (!isdefined(xOffset))
+        xOffset = 0;
+
+    if (!isdefined(yOffset))
+        yOffset = 0;
+
     self.bar.horzalign = self.horzalign;
     self.bar.vertalign = self.vertalign;
     self.bar.alignx = "left";
@@ -364,25 +398,16 @@ hud_set_shader(shader, width, height)
 
 hud_update_bar(barFrac, rateOfChange)
 {
-	if (self.elemType == "bar") hud_update_bar_scale(barFrac, rateOfChange);
-}
-
-hud_update_bar_scale(barFrac, rateOfChange)
-{
-    barWidth = int(self.width * barFrac + 0.5);
-
-    if (!barWidth)
-        barWidth = 1;
+    width = int(self.bar.width * barFrac + 0.5);
+    height = self.bar.height;
 
     self.bar.frac = barFrac;
-    self.bar setshader(self.bar.shader, barWidth, self.height);
+    self.bar setshader(self.bar.shader, width, height);
 
-    if (isdefined(rateOfChange) && barWidth < self.width)
+    if (isdefined(rateOfChange) && width < self.bar.width)
     {
-        if (rateOfChange > 0)
-            self.bar scaleovertime((1 - barFrac) / rateOfChange, self.width, self.height);
-        else if (rateOfChange < 0)
-            self.bar scaleovertime(barFrac / -1 * rateOfChange, 1, self.height);
+        if (rateOfChange > 0) self.bar scaleovertime((1 - barFrac) / rateOfChange, self.bar.width, height);
+        else self.bar scaleovertime(barFrac / -1 * rateOfChange, 1, height);
     }
 
     self.bar.rateofchange = rateOfChange;
