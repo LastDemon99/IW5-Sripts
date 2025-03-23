@@ -43,7 +43,7 @@ onMenuResponse()
 
 		if (response == "close_self")
 		{
-			self.shop = undefined;
+			self closeShop();
 			continue;
 		}
 		
@@ -66,6 +66,8 @@ onMenuResponse()
 
 openShop(page, is_back)
 {
+	self endon("close_shop");
+
 	if (!isDefined(is_back)) is_back = false;
 	isMainPage = tablelookup(TABLE, 1, page, 6) == "close_self";	
 	if (isMainPage && !is_back) self.menuPages = [];	
@@ -79,6 +81,12 @@ openShop(page, is_back)
         self openpopupmenu("dynamic_shop");
         self playLocalSound("nav_hover");
     }
+}
+
+closeShop()
+{
+	self.shop = undefined;
+	self closeMenu("dynamic_shop");
 }
 
 getOptionType(page, item, index)
@@ -159,4 +167,9 @@ shopInit(menu)
     self.shop.menu = menu;
     self.shop.page = -1;
     self.shop.owner = self;
+}
+
+isShopOpen()
+{
+	return isDefined(self.shop);
 }
