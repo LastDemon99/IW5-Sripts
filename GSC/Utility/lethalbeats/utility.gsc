@@ -88,69 +88,65 @@ is_type_equal(x, y)
 
 waittill_any(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 {
+	if (!isdefined(arg1)) return;
+	self endon("time_end");
+
 	if (isdefined(arg2))
 	{
         if (isString(arg2)) self endon(arg2);
-        else
-        {
-            self endon("time_end");
-            self thread _wait_time(arg2);
-        }
+        else self thread _wait_time(arg2);
     }
 
-    if (isString(arg3)) self endon(arg3);
-    else
-    {
-        self endon("time_end");
-        self thread _wait_time(arg3);
+    if (isdefined(arg3))
+	{
+        if (isString(arg3)) self endon(arg3);
+        else self thread _wait_time(arg3);
     }
 
-    if (isString(arg4)) self endon(arg4);
-    else
-    {
-        self endon("time_end");
-        self thread _wait_time(arg4);
+    if (isdefined(arg4))
+	{
+        if (isString(arg4)) self endon(arg4);
+        else self thread _wait_time(arg4);
     }
 
-    if (isString(arg5)) self endon(arg5);
-    else
-    {
-        self endon("time_end");
-        self thread _wait_time(arg5);
+    if (isdefined(arg5))
+	{
+        if (isString(arg5)) self endon(arg5);
+        else self thread _wait_time(arg5);
     }
 
-    if (isString(arg6)) self endon(arg6);
-    else
-    {
-        self endon("time_end");
-        self thread _wait_time(arg6);
+    if (isdefined(arg6))
+	{
+        if (isString(arg6)) self endon(arg6);
+        else self thread _wait_time(arg6);
     }
 
-    if (isString(arg7)) self endon(arg7);
-    else
-    {
-        self endon("time_end");
-        self thread _wait_time(arg7);
+    if (isdefined(arg7))
+	{
+        if (isString(arg7)) self endon(arg7);
+        else self thread _wait_time(arg7);
     }
 
-    if (isString(arg8)) self endon(arg8);
-    else
-    {
-        self endon("time_end");
-        self thread _wait_time(arg8);
+    if (isdefined(arg8))
+	{
+        if (isString(arg8)) self endon(arg8);
+        else self thread _wait_time(arg8);
     }
-
+	
     if (isString(arg1)) self waittill(arg1);
     else wait arg1;
+
+	self notify("time_end"); 
 }
 
 _wait_time(time)
 {
+    self endon("time_end");
     wait time;
     self notify("time_end");
 }
 
-waittill_any_return(notify1, notify2, notify3, notify4, notify5, notify6)
+waittill_any_return(notify1, notify2, notify3, notify4, notify5, notify6, notify7, notify8)
 {
     if (!isDefined(level.waitills)) level.waitills = 0;
 
@@ -164,7 +160,9 @@ waittill_any_return(notify1, notify2, notify3, notify4, notify5, notify6)
     if (isdefined(notify4)) self thread _waittill_return(endon_msg, notify4);
     if (isdefined(notify5)) self thread _waittill_return(endon_msg, notify5);
     if (isdefined(notify6)) self thread _waittill_return(endon_msg, notify6);
-
+    if (isdefined(notify7)) self thread _waittill_return(endon_msg, notify7);
+    if (isdefined(notify8)) self thread _waittill_return(endon_msg, notify8);
+    
     self waittill(endon_msg, notify_msg);
 	return notify_msg;
 }
@@ -196,4 +194,101 @@ get_map_center()
 		return alliesStart[0].origin + dir*halfDist;
 	}
 	return (0,0,0);	
+}
+
+predictFallTime(origin, velDir, gravity, maxTime, timeStep)
+{
+    if (!isDefined(velDir)) velDir = (0, 0, 0);
+    if (!isDefined(maxTime)) maxTime = 5;
+    if (!isDefined(timeStep)) timeStep = 0.05;
+
+    velDir = velDir;
+    time = 0;
+    maxLoops = int(maxTime / timeStep);
+
+    for (i = 0; i < maxLoops; i++)
+    {
+        startPos = origin;
+        origin += velDir * timeStep;
+        velDir = (velDir[0], velDir[1], velDir[2] - gravity * timeStep);
+        endPos = origin;
+
+        trace = bulletTrace(startPos, endPos, false, self);
+        if (trace["fraction"] < 1.0)
+        {
+            impactTime = time + (trace["fraction"] * timeStep);
+            return impactTime;
+        }
+        time += timeStep;
+    }
+
+    return 0; 
+}
+
+fallTime(gravity)
+{
+    if (!isDefined(gravity)) gravity = 800;
+
+    traceHeightOffset = (0, 0, 20);
+    traceDepth = (0, 0, 2000);
+
+    dropOrigin = playerPhysicsTrace(self.origin + traceHeightOffset, self.origin - traceDepth, 0, self);
+    fallDistance = distance(self.origin, dropOrigin);
+    fallTime = 0;
+
+    if (gravity > 0 && fallDistance > 0.01) fallTime = sqrt(2 * fallDistance / gravity);
+    return fallTime;
+}
+
+fakeGravity(gravity)
+{
+    if (!isDefined(gravity)) gravity = 800;
+
+    traceHeightOffset = (0, 0, 20);
+    traceDepth = (0, 0, 2000);
+
+	dropOrigin = playerPhysicsTrace(self.origin + traceHeightOffset, self.origin - traceDepth, 0, self);
+	angleTrace = bulletTrace(self.origin + traceHeightOffset, self.origin - traceDepth, 0, self);
+
+	if (angleTrace["fraction"] < 1 && distance(angleTrace["position"], dropOrigin) < 10)
+	{
+        yaw = self.angles[1];
+		forward = (cos(yaw), sin(yaw), 0);
+		forward = vectorNormalize(forward - angleTrace["normal"] * vectorDot(forward, angleTrace["normal"]));
+		dropAngles = vectorToAngles(forward);
+	}
+	else dropAngles = (0, self.angles[1], 0);
+
+    fallDistance = distance(self.origin, dropOrigin);
+    fallTime = 0;
+
+    if (gravity > 0 && fallDistance > 0.01)
+    {
+        fallTime = fallDistance / gravity;
+        if (fallTime < 0.05) fallTime = 0.05;
+    }
+    else if (fallDistance <= 0.01) fallTime = 0;
+
+    if (fallTime > 0)
+    {
+        self moveTo(dropOrigin, fallTime);
+        wait fallTime;
+    }
+    else self.origin = dropOrigin;
+
+    return fallTime;
+}
+
+spawn_model(origin, model)
+{
+    ent = spawn("script_model", origin);
+	if (isDefined(model)) ent setModel(model);
+    return ent;
+}
+
+get_current_dsr()
+{
+    mapRotation = getDvar("sv_mapRotation");
+    if (mapRotation == "" || !lethalbeats\string::string_contains(mapRotation, "dsr")) return undefined;
+    return strTok(mapRotation, " ")[1];
 }

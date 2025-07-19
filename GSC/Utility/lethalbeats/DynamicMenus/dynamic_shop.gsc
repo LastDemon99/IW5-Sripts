@@ -18,7 +18,9 @@ init()
 	{
 		level waittill("connected", player);
 		if(player isTestClient()) continue;
+		
         player.menuPages = [];
+        player.isMenuBusy = false;        
 		player thread onMenuResponse();
 	}
 }
@@ -32,14 +34,22 @@ onMenuResponse()
     {
         self waittill("menuresponse",  menu, response);
 
+        if (isDefined(self.isMenuBusy) && self.isMenuBusy) continue;
+        self.isMenuBusy = true;
+
 		if (menu == "class" && response == "back")
 		{
 			self closepopupMenu();
 			self closeInGameMenu();
+            self.isMenuBusy = false;
 			continue;
 		}
 		
-		if (menu != "dynamic_shop") continue;
+		if (menu != "dynamic_shop")
+        {
+            self.isMenuBusy = false;
+            continue;
+        }
 
 		if (response == "close_self")
 		{
@@ -49,18 +59,34 @@ onMenuResponse()
 		
         if (response == "prev_menu")
         {
-			newMenuPages = [];
-			for (i = 0; i < self.menuPages.size - 1; i++)
-				newMenuPages[i] = self.menuPages[i];	
-			self.menuPages = newMenuPages;
-            self openShop(self getPage(), true);
+            if (isDefined(self.menuPages) && self.menuPages.size > 1)
+            {
+                self.menuPages[self.menuPages.size - 1] = undefined; 
+                self openShop(self getPage(), true);
+            }
+            else self closeShop();
             continue;
         }
 
 		page = self getPage();
+
+        if (!isDefined(page) || page == "")
+        {
+            self closeShop();
+            continue;
+        }
+        
 		index = getIndex(page, response);
+        if (!isDefined(index) || index < 0)
+        {
+            self closeShop();
+            continue;
+        }
+
 		option_type = getOptionType(page, response, index);
-        self [[level.onSelectOption]](page, response, getPrice(response), option_type, index); // page, item, price
+        self [[level.onSelectOption]](page, response, getPrice(response), option_type, index);
+
+        if (isDefined(self.isMenuBusy) && self.isMenuBusy) self.isMenuBusy = false;
 	}
 }
 
@@ -68,11 +94,18 @@ openShop(page, is_back)
 {
 	self endon("close_shop");
 
+    if (!isDefined(page) || page == "")
+    {
+        self closeShop();
+        return;
+    }
+
 	if (!isDefined(is_back)) is_back = false;
 	isMainPage = tablelookup(TABLE, 1, page, 6) == "close_self";	
 	if (isMainPage && !is_back) self.menuPages = [];	
 	if (!is_back) self.menuPages[self.menuPages.size] = page;
-	self [[level.onOpenPage]](page);
+	
+    self [[level.onOpenPage]](page);
 	wait(0.07);
     
 	self updateLabels(page);
@@ -81,12 +114,16 @@ openShop(page, is_back)
         self openpopupmenu("dynamic_shop");
         self playLocalSound("nav_hover");
     }
+
+    self.isMenuBusy = false;
 }
 
 closeShop()
 {
 	self.shop = undefined;
+    self.menuPages = [];
 	self closeMenu("dynamic_shop");
+    if(isDefined(self)) self.isMenuBusy = false;
 }
 
 getOptionType(page, item, index)
@@ -140,7 +177,15 @@ getPage(index)
 {
 	if (!isDefined(index)) index = 1;
 	if (index < 0) index = index * -1;
-	return self.menuPages[self.menuPages.size - index];
+    
+    if (!isDefined(self.menuPages) || self.menuPages.size == 0) return undefined;
+
+    real_index = self.menuPages.size - index;
+
+    if (real_index < 0 || real_index >= self.menuPages.size) return undefined;
+
+	page = self.menuPages[real_index];
+	return page;
 }
 
 getPrice(item)
@@ -150,8 +195,17 @@ getPrice(item)
 
 getIndex(page, item)
 {
-	start_index = int(tablelookup(TABLE, 1, page, 0)) + 1;
-	return int(tablelookup(TABLE, 6, item, 0)) - start_index;
+    if (!isDefined(page) || page == "" || !isDefined(item) || item == "") return -1;
+
+	start_index_str = tablelookup(TABLE, 1, page, 0);
+    item_index_str = tablelookup(TABLE, 6, item, 0);
+
+    if (start_index_str == "" || item_index_str == "") return -1;
+
+	start_index = int(start_index_str);
+	item_index = int(item_index_str);
+
+	return item_index - (start_index + 1);
 }
 
 buyItem(price)

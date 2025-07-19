@@ -93,7 +93,7 @@ weapon_build(baseName, attachs, camo)
 {
 	if (!isDefined(camo)) camo = 0;
 	if (isstring(camo)) camo = attach_get_camo_index(camo);
-	if (!isDefined(attachs) || attachs.size == 0 || array_all(attachs, ::filter_equal, "none")) return maps\mp\gametypes\_class::buildweaponname(baseName, "none", "none", camo, 0);
+	if (!isDefined(attachs) || attachs.size == 0 || array_all(attachs, ::filter_equal, "none")) return maps\mp\gametypes\_class::buildWeaponName(baseName, "none", "none", camo, 0);
 
 	attachs = array_filter(attachs, ::filter_not_equal, "none");
 	attachs = array_map(attachs, ::attach_build, i(), baseName);
@@ -188,6 +188,16 @@ weapon_is_valid_buff(perkName)
 		default:
 			return false;
 	}
+}
+
+weapon_has_attach(weapon)
+{
+	return weapon_get_current_attachs(weapon).size != 0;
+}
+
+weapon_has_silencer(weapon)
+{
+	return array_any(weapon_get_current_attachs(weapon), ::attach_is_silencer);
 }
 
 /*
@@ -317,10 +327,91 @@ detail: weapon_get_display_name(baseName: <String>): <String>
 summary: Returns the locstring with weapon display name.
 ///DocStringEnd
 */
-weapon_get_display_name(baseName)
-{	
+weapon_get_display_name(weapon)
+{
+    baseName = weapon_get_baseName(weapon);
 	if (weapon_is_custom(baseName)) return level.customWeapons[baseName][1];
-	return tablelookup(STATS_TABLE, STATS_BASENAME_COLUMN, baseName, STATS_DISPLAYNAME_COLUMN);
+
+    switch(baseName)
+    {
+        case "iw5_44magnum":
+            weaponDisplay = ".44 Magnum";
+            break;
+        case "iw5_usp45":
+        case "iw5_usp45jugg":
+            weaponDisplay = "USP .45";
+            break;
+        case "iw5_deserteagle": weaponDisplay = "Desert Eagle"; break;
+        case "iw5_mp412":
+        case "iw5_mp412jugg":
+            weaponDisplay = "MP412";
+            break;
+        case "iw5_p99": weaponDisplay = "P99"; break;
+        case "iw5_fnfiveseven": weaponDisplay = "Five Seven"; break;
+        case "iw5_fmg9": weaponDisplay = "FMG9"; break;
+        case "iw5_skorpion": weaponDisplay = "Skorpion"; break;
+        case "iw5_mp9": weaponDisplay = "MP9"; break;
+        case "iw5_g18": weaponDisplay = "G18"; break;
+        case "iw5_mp5": weaponDisplay = "MP5"; break;
+        case "iw5_m9": weaponDisplay = "M9"; break;
+        case "iw5_p90": weaponDisplay = "P90"; break;
+        case "iw5_pp90m1": weaponDisplay = "PP90M1"; break;
+        case "iw5_ump45": weaponDisplay = "UMP45"; break;
+        case "iw5_mp7": weaponDisplay = "MP7"; break;
+        case "iw5_ak47": weaponDisplay = "AK-47"; break;
+        case "iw5_m16": weaponDisplay = "M16A4"; break;
+        case "iw5_m4": weaponDisplay = "M4A1"; break;
+        case "iw5_fad": weaponDisplay = "FAD"; break;
+        case "iw5_acr": weaponDisplay = "ACR 6.8"; break;
+        case "iw5_type95": weaponDisplay = "Type 95";
+        case "iw5_mk14": weaponDisplay = "MK14"; break;
+        case "iw5_scar": weaponDisplay = "SCAR-L"; break;
+        case "iw5_g36c": weaponDisplay = "G36C"; break;
+        case "iw5_cm901": weaponDisplay = "CM901"; break;
+        case "iw5_ksg": weaponDisplay = "KSG 12"; break;
+        case "iw5_1887": weaponDisplay = "Model 1887"; break;
+        case "iw5_striker": weaponDisplay = "Striker"; break;
+        case "iw5_aa12": weaponDisplay = "AA-12"; break;
+        case "iw5_usas12": weaponDisplay = "USAS 12"; break;
+        case "iw5_spas12": weaponDisplay = "SPAS-12"; break;
+        case "iw5_m60":
+        case "iw5_m60jugg": 
+            weaponDisplay = "M60E4"; 
+            break;
+        case "iw5_mk46": weaponDisplay = "MK46"; break;
+        case "iw5_pecheneg": weaponDisplay = "PKP Pecheneg"; break;
+        case "iw5_sa80": weaponDisplay = "L86 LSW"; break;
+        case "iw5_mg36": weaponDisplay = "MG36"; break;
+        case "iw5_dragunov": weaponDisplay = "Dragunov"; break;
+        case "iw5_msr": weaponDisplay = "MSR"; break;
+        case "iw5_barrett": weaponDisplay = "Barrett .50cal"; break;
+        case "iw5_rsass": weaponDisplay = "RSASS"; break;
+        case "iw5_as50": weaponDisplay = "AS50"; break;
+        case "iw5_l96a1": weaponDisplay = "L118A"; break;
+        case "gl": weaponDisplay = "Grenade Launcher"; break;
+        case "m320": weaponDisplay = "M320 GLM"; break;
+        case "rpg": weaponDisplay = "RPG-7"; break;
+        case "iw5_smaw": weaponDisplay = "SMAW"; break;
+        case "stinger": weaponDisplay = "Stinger"; break;
+        case "javelin": weaponDisplay = "Javelin"; break;
+        case "xm25": weaponDisplay = "XM25"; break;
+        case "riotshield":
+        case "iw5_riotshieldjugg": 
+            weaponDisplay = "Riot Shield"; 
+            break;
+        default: weaponDisplay = weapon; break;
+    }
+
+    attachs = weapon_get_current_attachs(weapon);    
+    if (!isDefined(attachs) || attachs.size == 0) return weaponDisplay;
+ 
+    foreach(attachment in attachs)
+    {
+        attachDisplay = attach_get_display_name(attachment);        
+        if (isDefined(attachDisplay)) weaponDisplay += " " + attachDisplay;
+    }
+
+    return weaponDisplay;
 }
 
 /*
@@ -447,6 +538,50 @@ weapon_get_baseName(weapon)
 		case "iw5": return tokens[0] + "_" + tokens[1];
 		default: return tokens[0];
 	}
+}
+
+weapon_get_random_ammo_data(weapon)
+{
+	ammoData = [];
+	
+	if (weapon_has_attach_alt(weapon))
+	{
+		ammoData["type"] = "alt";
+
+		maxClip = weaponClipSize(weapon);
+		maxStock = weaponMaxAmmo(weapon);
+		ammoData["clip"] = randomInt(maxClip + 1);
+		ammoData["stock"] = randomInt(maxStock + 1);
+		
+		altWeapon = "alt_" + weapon;
+		maxAltClip = weaponClipSize(altWeapon);
+		maxAltStock = weaponMaxAmmo(altWeapon);
+		ammoData["alt_clip"] = randomInt(maxAltClip + 1);
+		ammoData["alt_stock"] = randomInt(maxAltStock + 1);
+	}
+	else if (weapon_has_attach_akimbo(weapon))
+	{
+		ammoData["type"] = "akimbo";
+
+		maxClip = weaponClipSize(weapon);
+		maxStock = weaponMaxAmmo(weapon);
+
+		ammoData["left_clip"] = randomInt(maxClip + 1);
+		ammoData["right_clip"] = randomInt(maxClip + 1);
+		ammoData["stock"] = randomInt(maxStock + 1);
+	}
+	else
+	{
+		ammoData["type"] = "standard";
+
+		maxClip = weaponClipSize(weapon);
+		maxStock = weaponMaxAmmo(weapon);
+
+		ammoData["clip"] = randomInt(maxClip + 1);
+		ammoData["stock"] = randomInt(maxStock + 1);
+	}
+
+	return ammoData;
 }
 
 _filter_projectile(i) { return i != 46 && i != 51; }

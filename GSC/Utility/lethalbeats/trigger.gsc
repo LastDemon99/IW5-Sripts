@@ -1,8 +1,9 @@
 #include lethalbeats\array;
 #include lethalbeats\hud;
+#include lethalbeats\player;
 
 #define PREFIX "trigger_"
-#define TRIGGERS ["enter", "leave", "radius", "radius_hold", "use", "use_hold", "hold_complete"]
+#define TRIGGERS ["enter", "leave", "radius", "radius_hold", "use", "use_hold", "hold_complete", "hold_interrump"]
 
 #define TRIGGER_ENTER 0
 #define TRIGGER_LEAVE 1
@@ -11,10 +12,7 @@
 #define TRIGGER_USE 4
 #define TRIGGER_USE_HOLD 5
 #define TRIGGER_HOLD_COMPLETE 6
-
-//////////////////////////////////////////
-//	           PUBLIC UTILITY           //
-//////////////////////////////////////////
+#define TRIGGER_HOLD_INTERRUMP 7
 
 /*
 ///DocStringBegin
@@ -30,12 +28,17 @@ trigger_create(origin, radius, height, spawnflag)
 
 	trigger = spawn("trigger_radius", origin, spawnflag, radius, height);
 	trigger.type = TRIGGER_RADIUS;
-	trigger.tag = "none";
-	trigger.showTo = level.players;
-	trigger.showFilter = ::_filter_players_array;
+	trigger.disabled = false;
 	trigger.hasEntered = [];
-	trigger thread _onPlayerEnter();
-
+	trigger.shareUse = true;
+	trigger.onUseBehavior = 0; // 0: none, 1: disable, 2: remove
+	trigger.inUseBy = undefined;
+	trigger.showFilter = ::_filter_blank;
+	trigger.tag = "";
+	trigger.hintStringY = 130;
+	trigger.hintStringAlpha = 1;
+	trigger.collOrigin = origin;
+	trigger thread _onTriggerPlayer();
 	return trigger;
 }
 
@@ -44,283 +47,362 @@ trigger_set_hint_string(hintString)
 	self.hintString = hintString;
 }
 
+trigger_set_share_use(shareUse)
+{
+	self.shareUse = shareUse;
+}
+
+trigger_set_on_use_behavior(onUseBehavior)
+{
+	self.onUseBehavior = onUseBehavior;
+}
+
 /*
 ///DocStringBegin
 detail: <Trigger> trigger_set_radius_hold(useTime: <Int>, hintString: <String>): <Void>
 summary: Replace This.
 ///DocStringEnd
 */
-trigger_set_radius_hold(useTime, hintString)
+trigger_set_radius_hold(useTime, hintString, shareUse)
 {
 	self.hintString = hintString;
 	self.type = TRIGGER_RADIUS_HOLD;
 	self.useTime = useTime;
-	self.pbarX = 0;
-	self.pbarY = 25;
-	self.curProgress = 0;
-    self.inUse = true;
-    self.useRate = 0;
-}
-
-trigger_set_use(hintString)
-{
-	self.hintString = hintString;
-	self.type = TRIGGER_USE;
-}
-
-trigger_set_use_hold(useTime, hintString)
-{
-	self trigger_set_radius_hold(useTime, hintString);
-	self.type = TRIGGER_USE_HOLD;
-}
-
-trigger_showTo(showTo)
-{
-	self.showTo = showTo;
-	if (isString(self.showTo)) self.showFilter = ::_filter_team;
-	else if (isPlayer(self.showTo)) self.showFilter = ::_filter_player;
-	else if (isArray(self.showTo)) self.showFilter = ::_filter_players_array;
-	else self.showFilter = ::_filter_blank;
+	self.hintStringX = 0;
+	self.hintStringY = 115;
+	if (isDefined(shareUse)) self.shareUse = shareUse;
 }
 
 /*
 ///DocStringBegin
-detail: <Player> trigger_player_monitor(): <Void>
-summary: Monitors a player's interaction with a trigger zone, handling enter, hold, and leave events.
+detail: trigger_set_use(hintString: <String>, shareUse?: <Bool | Undefined>, onUseBehavior?: <Int | Undefined>): <Void>
+summary: Sets up a use trigger with a hint, shared access, and post-use behavior (0:none, 1:disable, or 2:remove).
 ///DocStringEnd
 */
-trigger_player_monitor()
+trigger_set_use(hintString, shareUse, onUseBehavior)
+{
+	self.hintString = hintString;
+	self.type = TRIGGER_USE;
+	if (isDefined(shareUse)) self.shareUse = shareUse;
+	if (isDefined(onUseBehavior)) self.onUseBehavior = onUseBehavior;
+}
+
+/*
+///DocStringBegin
+detail: trigger_set_use_hold(useTime: <Int>, hintString: <String>, shareUse?: <Bool | Undefined>, onUseBehavior?: <Int | Undefined>): <Void>
+summary: Sets up a hold use trigger with a hint, shared access, and post-use behavior (0:none, 1:disable, or 2:remove).
+///DocStringEnd
+*/
+trigger_set_use_hold(useTime, hintString, shareUse, onUseBehavior)
+{
+	self trigger_set_radius_hold(useTime, hintString);
+	self.type = TRIGGER_USE_HOLD;
+	if (isDefined(shareUse)) self.shareUse = shareUse;
+	if (isDefined(onUseBehavior)) self.onUseBehavior = onUseBehavior;
+}
+
+trigger_player_waittill(type, tag)
 {
 	level endon("game_ended");
+	self endon("disable");
+	self endon("death");
+
+	for(;;)
+	{
+		self waittill(type, trigger);
+		if (isDefined(trigger) && isDefined(trigger.tag) && trigger.tag == tag) return trigger;
+	}
+}
+
+trigger_disable()
+{
+	if(self.disabled) return;
+	self.disabled = true;
+	foreach(player in self.hasEntered)
+	{
+		if (!isDefined(player)) continue;
+		player _playerTriggerDisable(self);
+	}
+	self.hasEntered = [];
+	self notify("disable");
+}
+
+trigger_enable()
+{
+	self.disabled = false;
+	self notify("enable");
+}
+
+_onTriggerPlayer()
+{
+	level endon("game_ended");
+	self endon("death");
+
+	for(;;)
+	{
+		if(self.disabled) self waittill("enable");
+
+		self waittill("trigger", player);
+
+		if (self.disabled || !isPlayer(player)) continue;
+        if (!self [[self.showFilter]](player)) continue;
+		
+		if (!isDefined(player.touchingTriggers))
+        {
+            player thread _playerTriggerInit();
+            wait 0.05;
+        }
+
+		self _triggerNotify(TRIGGER_RADIUS, player);
+		if (array_contains(self.hasEntered, player)) continue;
+		else self _triggerNotify(TRIGGER_ENTER, player);
+	}
+}
+
+_playerTriggerInit()
+{
+	if (isDefined(self.touchingTriggers)) return;
+	self.touchingTriggers = [];
+	self thread _playerTriggerManager();
+	self thread _playerLeaveMonitor();
+}
+
+_playerLeaveMonitor()
+{
 	self endon("disconnect");
 	
 	for(;;)
 	{
-		self waittill("trigger_enter", trigger);
-		self _onPlayerTouching(trigger);
-		trigger.hasEntered = array_remove(trigger.hasEntered, self);
-		if (trigger [[trigger.showFilter]](self)) self _notifyTrigger(TRIGGER_LEAVE, trigger);
-		if(isDefined(trigger.hintString))  self _playerClearHintString();
-	}
-}
-
-trigger_delete()
-{
-	level endon("game_ended");
-	self waittill("delete");
-	
-	foreach(player in level.players) 
-		if (isDefined(player.onTrigger) && player.onTrigger == self)
+		wait 0.2;
+		triggersToCheck = self.touchingTriggers;
+		foreach(trigger in triggersToCheck)
 		{
-			player _playerClearHintString();
-			player.onTrigger = undefined;
-		}
-	
-	if (isDefined(self.icon3D)) 
-		foreach(showTo in getarraykeys(self.icon3D)) self.icon3D[showTo] destroy();
-	
-	if (isDefined(self.icon2D)) 
-		foreach(showTo in getarraykeys(self.icon2D)) maps\mp\_utility::_objective_delete(self.icon2D[showTo]);
-	
-	self delete();
-}
-
-//////////////////////////////////////////
-//	            LOGIC   		        //
-//////////////////////////////////////////s
-
-_onPlayerEnter()
-{
-	level endon("game_ended");
-	self endon("delete");
-	self endon("is_look_at");
-
-	for(;;)
-	{
-		self waittill("trigger", player);
-		if (!self [[self.showFilter]](player) || array_contains(self.hasEntered, player)) continue;
-		self.hasEntered[self.hasEntered.size] = player;
-		player _notifyTrigger(TRIGGER_ENTER, self);
-		if(isDefined(self.hintString)) player _playerShowHintString(self.hintString);
-	}
-}
-
-_onPlayerTouching(trigger)
-{
-	while (self isTouching(trigger))
-	{	
-		if (trigger.type == TRIGGER_RADIUS)
-		{
-			if (!trigger [[trigger.showFilter]](self)) break;
-			self _notifyTrigger(TRIGGER_RADIUS, self);
-		}
-		else if (trigger.type == TRIGGER_RADIUS_HOLD)
-		{
-			if (!(self _playerHoldThink(trigger)))
-				return;
-		}
-		else if (trigger.type == TRIGGER_USE_HOLD)
-		{
-			if (self useButtonPressed() && !(self _playerHoldThink(trigger)))
-				return;
-		}
-		else if (trigger.type == TRIGGER_USE)
-		{
-			if (self useButtonPressed())
+			if(!isDefined(trigger) || !self isTouching(trigger))
 			{
-				while (self useButtonPressed())
-					wait 0.05;
-				self _notifyTrigger(TRIGGER_USE, trigger);
+				if(isDefined(trigger)) trigger _triggerNotify(TRIGGER_LEAVE, self);
+				else self _playerTriggerDisable(trigger);
 			}
 		}
-		wait 0.06;
 	}
 }
 
-_playerShowHintString(text)
+_playerTriggerDisable(trigger)
 {
-	hintString = hud_create_string(self, text, "hudbig", 0.6);
-	hintString hud_set_point("center", "center", 0, 115);
+	if (isDefined(self.touchingTriggers)) self.touchingTriggers = array_remove(self.touchingTriggers, trigger);
+	self _playerClearHintString();
+	self _playerClearUseBar();
+}
+
+_playerTriggerManager()
+{
+	self endon("disconnect");
+	self.isUsingTrigger = false;
+
+    for (;;)
+    {
+        wait 0.1;
+		
+		if(self.isUsingTrigger) continue;
+		
+        closestTrigger = undefined;
+        closestDistSq = 99999999;
+		enablePickup = true;
+		
+		triggersToCheck = self.touchingTriggers; 
+
+        foreach (trigger in triggersToCheck)
+        {
+			if (!isDefined(trigger))
+			{
+				self _playerTriggerDisable(trigger); 
+				continue;
+			}
+			if(trigger.disabled) continue;
+			
+			if (!trigger [[trigger.showFilter]](self)) continue;
+			if (!trigger.shareUse && isDefined(trigger.inUseBy) && trigger.inUseBy != self) continue;
+
+			if (trigger.type == TRIGGER_USE || trigger.type == TRIGGER_USE_HOLD)
+			{
+				if(isDefined(trigger.hintString))
+				{
+					self disableweaponPickup();
+					enablePickup = false;
+				}
+			}
+
+            if (!isDefined(trigger.hintString)) continue;
+			
+            distSq = distanceSquared(self.origin, trigger.origin);
+            if (distSq < closestDistSq)
+            {
+                closestDistSq = distSq;
+                closestTrigger = trigger;
+            }
+        }
+		if (enablePickup) self enableWeaponPickup();
+		
+		if (isDefined(closestTrigger))
+		{
+			self _playerShowHintString(closestTrigger);
+			
+			if (self useButtonPressed())
+			{
+				if (closestTrigger.type == TRIGGER_USE_HOLD)
+				{
+					self.isUsingTrigger = true;
+					self _playerHoldThink(closestTrigger);
+					self.isUsingTrigger = false;
+				}
+				else if (closestTrigger.type == TRIGGER_USE)
+				{
+					while(self useButtonPressed())
+						wait 0.05;
+					closestTrigger _triggerNotify(TRIGGER_USE, self);
+				}
+			}
+		}
+		else self _playerClearHintString();
+    }
+}
+
+_playerShowHintString(trigger)
+{
+	if(isDefined(self.hintString) && isDefined(self.hintString.trigger) && self.hintString.trigger == trigger) return;
+	self _playerClearHintString();
+	hintString = hud_create_string(self, trigger.hintString, "hudbig", 0.6);
+	hintString hud_set_point("center", "center", trigger.hintStringX, trigger.hintStringY);
+	hintString.trigger = trigger;
 	self.hintString = hintString;
+	self.hintString.alpha = trigger.hintStringAlpha;
 }
 
 _playerClearHintString()
 {
-	self.hintString hud_destroy_elem();
+	if (!isDefined(self.hintString)) return;
+	self.hintString hud_destroy();
 	self.hintString = undefined;
 }
 
+_playerShowUseBar(trigger)
+{
+	if(isDefined(self.useBar) && isDefined(self.useBar.trigger) && self.useBar.trigger == trigger) return;
+	self _playerClearUseBar();
+	useBar = hud_create_bar(self, 130, 12);
+	useBar hud_set_point("center", "center", 0, 100);
+	useBar.trigger = trigger;
+	self.useBar = useBar;
+	self player_disable_weapons();
+	self player_disable_usability();
+
+	self.useBar.spot = spawn("script_origin", self.origin);
+	self.useBar.spot.angles = self.angles;
+	self.useBar.spot hide();
+	self playerLinkTo(self.useBar.spot);
+}
+
+_playerClearUseBar()
+{
+	if (!isDefined(self.useBar)) return;
+
+	self unlink();
+	self.useBar.spot delete();
+	self.useBar hud_destroy();
+	self.useBar = undefined;
+	self player_enable_weapons();
+	self player_enable_usability();
+}
+
 _playerHoldThink(trigger)
-{    
-	level endon("game_ended");
+{
 	self endon("disconnect");
-	self endon("death");
 	trigger endon("death");
+	trigger endon("disable");
 
 	if (trigger.type == TRIGGER_USE_HOLD)
     {
 		self playerLinkTo(trigger);
 		self playerLinkedOffsetEnable();
-    	self disableweapons();
-		result = trigger _holdThink(trigger.type, self, ::_isButtonPressed);
-	}
-	else result = trigger _holdThink(trigger.type, self, ::_isTouching);
-
-	if (result) wait 0.3;
-	if (trigger.type == TRIGGER_USE_HOLD)
-    {
-		self enableWeapons();
-		self unlink();
+    	self player_disable_weapons();
 	}
 
-	trigger.inUse = false;
-    trigger.curProgress = 0; // make slow to 0 no just 0
+	result = trigger _holdThink(self, (trigger.type == TRIGGER_USE_HOLD) ? ::_isButtonPressed : ::_isTouching);
+
+	self player_enable_weapons();
+	self player_enable_usability();
+	self unlink();
 
 	return result;
 }
 
-_holdThink(hold_type, player, condition)
+_holdThink(player, condition)
 {
-	self endon("disconnect");
+	if (!self.shareUse)
+	{
+		if (isDefined(self.inUseBy)) return false;
+		else self.inUseBy = player;
+	}
 
-	self.useRate = 1; // speed handler
-	useBar = hud_create_bar(self, 130, 12);
-	useBar hud_set_point("center", "center", 0, 100);
-	startTime = getTime();
+	player _playerShowUseBar(self);
+	self _triggerNotify(TRIGGER_USE_HOLD, player);
 
-	while(self [[condition]](player) && self.curProgress < self.useTime)
+    startTime = getTime();
+    endTime = startTime + (self.useTime * 1000);
+
+	while (getTime() < endTime)
     {
-		if (!self [[self.showFilter]](player))
+		if (!self [[condition]](player) || !self [[self.showFilter]](player))
 		{
-			useBar hud_destroy_elem();
+			player _playerClearUseBar();
+			self _triggerNotify(TRIGGER_HOLD_INTERRUMP, player);
+			if(!self.shareUse) self.inUseBy = undefined;
 			return false;
 		}
-
-		self _notifyTrigger(hold_type, self);
-        self.curProgress += (50 * self.useRate);
-		player _notifyTrigger(TRIGGER_RADIUS_HOLD, self);
-
-		if (self.curProgress >= self.useTime)
-		{
-			self.curProgress = self.useTime;
-			useBar hud_update_bar(self.curProgress / self.useTime, 1000 / self.useTime * self.useRate);
-			player _notifyTrigger(TRIGGER_HOLD_COMPLETE, self);
-		}
-		else useBar hud_update_bar(self.curProgress / self.useTime, 1000 / self.useTime * self.useRate);
-        wait 0.05;
+		
+		elapsedTime = getTime() - startTime;
+		barFrac = elapsedTime / (elapsedTime + (endTime - getTime()));	
+		if(isDefined(player.useBar)) player.useBar hud_update_bar(barFrac, 0);
+		
+		wait 0.05;
     }
 
-	useBar hud_destroy_elem();
-    return self.curProgress == self.useTime;
+	player _playerClearUseBar();
+	self _triggerNotify(TRIGGER_HOLD_COMPLETE, player);
+	if(!self.shareUse) self.inUseBy = undefined;
+    return true;
 }
 
-//////////////////////////////////////////
-//	         INTERNAL UTILITY           //
-//////////////////////////////////////////
+_triggerNotify(type, player)
+{
+	if (!isDefined(self)) return;
+
+	switch(type)
+	{
+		case TRIGGER_ENTER:
+			self.hasEntered = array_append(self.hasEntered, player);
+            if(isDefined(player.touchingTriggers)) player.touchingTriggers = array_append(player.touchingTriggers, self);
+			break;
+		case TRIGGER_LEAVE:
+			self.hasEntered = array_remove(self.hasEntered, player);
+			player _playerTriggerDisable(self);
+			break;
+		case TRIGGER_USE:
+		case TRIGGER_HOLD_COMPLETE:
+			if (self.onUseBehavior == 1) self trigger_disable();
+			else if (self.onUseBehavior == 2) self delete();
+			break;
+		case TRIGGER_USE_HOLD:
+        case TRIGGER_HOLD_INTERRUMP:
+			break;
+	}
+
+	_triggers = TRIGGERS;
+	typeString = PREFIX + _triggers[type];
+
+	self notify(typeString, player);
+	player notify(typeString, self);
+}
 
 _isButtonPressed(player) { return player useButtonPressed(); }
 _isTouching(player) { return player isTouching(self); }
-
-_notifyTrigger(type, trigger)
-{
-	_triggers = TRIGGERS;
-	type = PREFIX + _triggers[type];
-	self notify(type, trigger);
-	trigger notify(type, self);
-}
-
-trigger_set_2d_icon(showTo, shader)
-{
-	if (showTo == "all")
-	{
-		trigger_set_2d_icon("allies", shader);
-		trigger_set_2d_icon("axis", shader);
-		return;
-	}
-	
-	objId = maps\mp\gametypes\_gameobjects::getNextObjID();
-	objective_add(objId, "active", (0, 0, 0));
-	objective_state(objId, "active");
-	objective_position(objId, self.origin);
-	objective_icon(objId, shader);
-	
-	if (isPlayer(showTo)) objective_player(objId, showTo);
-	else objective_team(objId, showTo);
-	
-	if(!isDefined(self.icon2D)) self.icon2D = [];
-	self.icon2D[showTo] = objId;
-}
-
-trigger_update_2d_icon(showTo, shader)
-{
-	if(!isDefined(self.icon2D[showTo])) return;
-	objective_icon(self.icon2D[showTo], shader);
-}
-
-trigger_set_3d_icon(showTo, shader, height, width, targetEnt, offset)
-{	
-	if (isPlayer(showTo)) icon = newClientHudElem(showTo);
-	else if (showTo == "all") icon = newHudElem();
-	else icon = newTeamHudElem(showTo);
-	
-	icon setShader(shader, height, width);
-	icon setWaypoint(true, true);
-	
-	if(!isDefined(targetEnt)) targetEnt = isDefined(offset) ? spawn("script_model", self.origin + offset) : self;	
-	icon setTargetEnt(targetEnt);	
-	
-	if(!isDefined(self.icon3D)) self.icon3D = [];
-	self.icon3D[showTo] = icon;
-}
-
-trigger_update_3d_icon(showTo, shader)
-{
-	if(!isDefined(self.icon3D[showTo])) return;
-	icon = self.icon3D[showTo];
-	icon setShader(shader, icon.height, icon.width);
-}
-
-_filter_blank(player) { return false; }
-_filter_team(player) { return self.showTo == player.team; }
-_filter_player(player) { return self.showTo == player; }
-_filter_players_array(player) { return lethalbeats\array::array_contains(self.showTo, player); }
+_filter_blank(player) { return true; }

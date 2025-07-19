@@ -101,6 +101,7 @@ _json_parse_value()
     else if(ch == "[") return _json_parse_array();
     else if(ch == "\"") return _json_parse_string();
     else if(ch == "-" || _is_digit(ch)) return _json_parse_number();
+    else if(ch == "(") return _json_parse_vector();
     else return _json_parse_literal();
 }
 
@@ -172,6 +173,40 @@ _json_parse_array()
         else break;
     }
     return arr;
+}
+
+_json_parse_vector()
+{
+    level.json_index++;
+    _json_skip_whitespace();
+    
+    nums = [];
+    current = "";
+
+    while(level.json_index < level.global_json.size)
+    {
+        ch = level.global_json[level.json_index];
+        if(ch == "," || ch == ")")
+        {
+            nums[nums.size] = float(current);
+            current = "";
+            if(ch == ")")
+            {
+                level.json_index++;
+                break;
+            }
+        }
+        else if(ch != " ")
+        {
+            current += ch;
+        }
+        level.json_index++;
+    }
+
+    if(nums.size == 3)
+        return (nums[0], nums[1], nums[2]);
+
+    return nums;
 }
 
 _json_parse_string()

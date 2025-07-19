@@ -20,7 +20,8 @@ summary: Create and returns hud element based on level, player or team. Initiali
 */
 hud_create_elem(target, elemType, align, relative, x, y) 
 {    
-    if (isPlayer(target)) hudElem = newClientHudElem(target);
+    if (!isDefined(target)) hudElem = newhudelem();
+    else if (isPlayer(target)) hudElem = newClientHudElem(target);
 	else if (isString(target)) hudElem = newTeamHudElem(target);
 	else hudElem = newhudelem();
 	
@@ -125,6 +126,7 @@ hud_create_bar(target, width, height, color, flashFrac)
     primaryBar.color = (0, 0, 0);
     primaryBar.alpha = 0.5;
     primaryBar setshader("progress_bar_bg", width, primaryBar.height);
+
     primaryBar hud_set_point("CENTER", undefined, level.primaryprogressbarx, level.primaryprogressbary);
 
     return primaryBar;
@@ -144,7 +146,7 @@ hud_create_countdown_center(target, countTime, endNotify)
 
 /*
 ///DocStringBegin
-detail: hud_create_countdown(target: <Player> | <String>, countTime: <Int>, sound?: <String>, endNotify?: <String>, pulseEffect?: <Bool>): <Void>
+detail: hud_create_countdown(countTime: <Int>, sound?: <String>, endNotify?: <String>, pulseEffect?: <Bool>): <Void>
 summary: Start a countdown timer from the specified time. When the countdown ends, a notify is sent. Blocks execution flow, you should consider using a thread.
 ///DocStringEnd
 */
@@ -174,8 +176,18 @@ hud_set_countdown(countTime, sound, endNotify, pulseEffect)
 	level notify(endNotify, self.target);
 }
 
-hud_set_parent(element)
+/*
+///DocStringBegin
+detail: <HudElement> hud_set_parent(element: <HudElement>, updatePosition?: <Bool>): <Void>
+summary: Sets the parent of a HUD element. This allows for hierarchical organization, like destroying children when a parent is destroyed.
+param(updatePosition): If true, the child's position will be recalculated relative to the new parent. Defaults to false.
+///DocStringEnd
+*/
+hud_set_parent(element, updatePosition)
 {
+    if (!isDefined(updatePosition))
+        updatePosition = false; // Por defecto, NO actualizaremos la posición.
+
     if (isdefined(self.parent))
     {
         if (self.parent == element) return;
@@ -185,8 +197,14 @@ hud_set_parent(element)
     self.parent = element;
     self.parent hud_add_child(self);
 
-    if (isdefined(self.point)) hud_set_point(self.point, self.relativepoint, self.xoffset, self.yoffset);
-    else hud_set_point("TOPLEFT");
+    // Solo actualizamos el punto si el parámetro updatePosition es verdadero.
+    if (updatePosition)
+    {
+        if (isdefined(self.point))
+            self hud_set_point(self.point, self.relativepoint, self.xoffset, self.yoffset);
+        else
+            self hud_set_point("TOPLEFT");
+    }
 }
 
 hud_add_child(element)
@@ -388,7 +406,7 @@ _hud_set_point_bar(align, relativePoint, xOffset, yOffset)
     else if (self.aligny == "bottom")
         self.bar.y = self.y;
 
-    hud_update_bar(self.bar.frac);
+    self hud_update_bar(self.bar.frac);
 }
 
 hud_set_shader(shader, width, height)
@@ -407,7 +425,7 @@ hud_update_bar(barFrac, rateOfChange)
     if (isdefined(rateOfChange) && width < self.bar.width)
     {
         if (rateOfChange > 0) self.bar scaleovertime((1 - barFrac) / rateOfChange, self.bar.width, height);
-        else self.bar scaleovertime(barFrac / -1 * rateOfChange, 1, height);
+        else if (rateOfChange < 0) self.bar scaleovertime(barFrac / (-1 * rateOfChange), 1, height);
     }
 
     self.bar.rateofchange = rateOfChange;
@@ -456,28 +474,26 @@ hud_show_elem()
 
 /*
 ///DocStringBegin
-detail: <HudElement> hud_destroy_elem(): <Void>
+detail: <HudElement> hud_destroy(): <Void>
 summary: Destroy parents of the current element and destroy the element itself.
 ///DocStringEnd
 */
-hud_destroy_elem()
+hud_destroy()
 {
-	tempChildren = [];
+    if (isDefined(self.objID)) self hud_delete_2d_objective();
+    if (isDefined(self.objective)) self hud_delete_3d_objective();
+    if (isDefined(self.bar)) self.bar destroy();
 
-	for (index = 0; index < self.children.size; index++)
-	{
-		if (isDefined(self.children[index]))
-			tempChildren[tempChildren.size] = self.children[index];
-	}
+    for (index = 0; index < self.children.size; index++)
+    {
+        child = self.children[index];
+        if (isDefined(child)) child destroy();
+    }
 
-	for (index = 0; index < tempChildren.size; index++)
-		tempChildren[index] hud_set_parent(self.parent);
-		
-	if (self.elemType == "bar" || self.elemType == "bar_shader")
-		self.bar destroy();
-
-	self destroy();
+    if (isDefined(self)) self destroy();
 }
+
+hud_delete() { self hud_destroy(); }
 
 hud_init_pulse_effect(maxFontScale)
 {
@@ -515,7 +531,7 @@ hud_effect_fade_on_show(fadeOverTime)
 
 hud_fullscreen_overlay(shader)
 {
-	overlay = newClientHudElem(self);
+	overlay = hud_create_elem(self, "fullscreen_overlay");
 	overlay.x = 0;
 	overlay.y = 0;
 	overlay.alignX = "left";
@@ -551,4 +567,97 @@ hud_clear_lower_messages()
 _hasLowerMessage(i, name)
 {
     return i.name == name;
+}
+
+/*
+///DocStringBegin
+detail: <Entity> hud_create_2d_objective(showTo: <String>, shader: <Shader>): <Void>
+summary: Create a 2d hud objective.
+///DocStringEnd
+*/
+hud_create_2d_objective(showTo, shader)
+{
+	if (showTo == "all")
+	{
+		hud_create_2d_objective("allies", shader);
+		hud_create_2d_objective("axis", shader);
+		return;
+	}
+	
+	objId = maps\mp\gametypes\_gameobjects::getNextObjID();
+	objective_add(objId, "active", (0, 0, 0));
+	objective_state(objId, "active");
+	objective_position(objId, self.origin);
+	objective_icon(objId, shader);
+	
+	if (isPlayer(showTo)) objective_player(objId, showTo);
+	else objective_team(objId, showTo);
+
+    self.objID = objId;
+}
+
+hud_delete_2d_objective(objId)
+{
+    if (!isDefined(objId)) objId = self.objID;
+    objective_delete(objId);
+    if (!isdefined(level.reclaimedreservedobjectives))
+    {
+        level.reclaimedreservedobjectives = [];
+        level.reclaimedreservedobjectives[0] = objId;
+    }
+    else level.reclaimedreservedobjectives[level.reclaimedreservedobjectives.size] = objId;
+}
+
+hud_update_2d_objective(shader, objId)
+{
+    if (!isDefined(objId)) objId = self.objID;    
+	objective_icon(objId, shader);
+}
+
+/*
+///DocStringBegin
+detail: <HudElement> hud_create_3d_objective(showTo: <Entity | String>, shader: <String>, height: <Float>, width: <Float>, targetEnt?: <Entity | Undefined>): <HudElement>
+summary: Create and returns a 3d hud objective.
+///DocStringEnd
+*/
+hud_create_3d_objective(showTo, shader, height, width, targetEnt)
+{
+    objective = hud_create_elem(showTo);
+	objective setShader(shader, height, width);
+	objective setWaypoint(true, true);
+    
+    if (isDefined(targetEnt)) objective setTargetEnt(targetEnt);
+    else objective setTargetEnt(self);
+    
+    self.objective = objective;
+    return objective;
+}
+
+hud_update_3d_objective(shader)
+{
+    if (isDefined(self.objective)) self.objective setShader(shader, self.height, self.width);
+    else self setShader(shader, self.height, self.width);
+}
+
+hud_delete_3d_objective()
+{
+    if (isDefined(self.objective)) self.objective destroy();
+}
+
+hud_delete_objective()
+{
+    if (isDefined(self.objID)) self lethalbeats\hud::hud_delete_2d_objective();
+    if (isDefined(self.objective)) self lethalbeats\hud::hud_delete_3d_objective();
+}
+
+hud_notify_message(notifyData, target)
+{
+	if (isPlayer(self)) self thread maps\mp\gametypes\_hud_message::notifyMessage(notifyData);
+	else
+    {
+        if (!isDefined(target)) lethalbeats\array::array_thread_ent(level.players, maps\mp\gametypes\_hud_message::notifyMessage, notifyData);
+        else if (isPlayer(target)) self thread maps\mp\gametypes\_hud_message::notifyMessage(target);
+        else if (isString(target)) lethalbeats\array::array_thread_ent(lethalbeats\player::players_by_string(target), maps\mp\gametypes\_hud_message::notifyMessage, notifyData);
+        else lethalbeats\array::array_thread_ent(level.players, maps\mp\gametypes\_hud_message::notifyMessage, notifyData);
+    }
 }

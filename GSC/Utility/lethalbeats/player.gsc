@@ -36,18 +36,14 @@ player_count(team, alives)
 	return count;
 }
 
-player_give_weapon(weapon, variant, dualWieldOverRide)
+player_give_weapon(weapon, switchInmmediate, maxAmmo)
 {
 	if (!string_contains(weapon, "_mp_") && !string_ends_with(weapon, "_mp"))
 		weapon = weapon + "_mp";
 	
-	if (!isDefined(variant))
-		variant = -1;
-	
-	if (string_contains(weapon, "_akimbo") || isDefined(dualWieldOverRide) && dualWieldOverRide == true)
-		self giveWeapon(weapon, variant, true);
-	else
-		self giveWeapon(weapon, variant, false);
+	self giveWeapon(weapon);
+	if (isDefined(maxAmmo) && maxAmmo) self giveMaxAmmo(weapon);
+	if (isDefined(switchInmmediate) && switchInmmediate) self switchToWeaponImmediate(weapon);
 }
 
 player_give_spawn_weapon(weapon, switch_to_weapon)
@@ -128,6 +124,11 @@ player_give_perk(perkName, useSlot)
 	self player_set_extra_perks(perkName);
 }
 
+player_give_all_perks()
+{
+	
+}
+
 player_set_extra_perks(perkName)
 {
 	if(perkName == "specialty_coldblooded")
@@ -165,25 +166,27 @@ player_has_perk(perkName)
 	return false;
 }
 
-player_refill_ammo()
+player_refill_ammo(endonOnDeath)
 {
     level endon("game_ended");
     self endon("disconnect");
+	if (isDefined(endonOnDeath) && endonOnDeath) self endon("death");
 
     for (;;)
     {
         self waittill("reload");
-		if(player_is_infect(self)) break;
+		if(self player_is_infect()) break;
 		weapon = self getCurrentWeapon();
 		if(!isDefined(weapon) || weapon_get_class(weapon) == "riot") continue;
-		self giveMaxAmmo(weapon);
+		self player_give_max_ammo(weapon);
     }
 }
 
-player_refill_single_count_ammo()
+player_refill_single_count_ammo(endonOnDeath)
 {
     level endon("game_ended");
     self endon("disconnect");
+	if (isDefined(endonOnDeath) && endonOnDeath) self endon("death");
 
     for (;;)
     {
@@ -201,10 +204,11 @@ player_refill_single_count_ammo()
 	}
 }
 
-player_nades_refill()
+player_nades_refill(endonOnDeath)
 {
-	self endon("disconnect");
-	level endon("game_ended");
+    level endon("game_ended");
+    self endon("disconnect");
+	if (isDefined(endonOnDeath) && endonOnDeath) self endon("death");
 	
 	for (;;)
     {
@@ -228,9 +232,12 @@ player_nades_refill()
 	}
 }
 
-player_stinger_fire()
+player_stinger_fire(endonOnDeath)
 {
+	level endon("game_ended");
 	self endon("disconnect");
+	if (isDefined(endonOnDeath) && endonOnDeath) self endon("death");
+
 	self notifyOnPlayerCommand("attack", "+attack");
 	
 	for(;;)
@@ -280,11 +287,11 @@ player_is_flashed()
 
 /*
 ///DocStringBegin
-detail: player_get_list(team?: <String | Undefined>, alives?: <Boolean | Undefined>): <Entity[]>
+detail: players_get_list(team?: <String | Undefined>, alives?: <Boolean | Undefined>): <Entity[]>
 summary: Returns an array of players optionally filtered by team and alive status.
 ///DocStringEnd
 */
-player_get_list(team, alives)
+players_get_list(team, alives)
 {
 	players = [];
 	foreach (player in level.players)
@@ -294,6 +301,34 @@ player_get_list(team, alives)
 		players[players.size] = player;
 	}
 	return players;
+}
+
+players_by_string(target)
+{
+    switch(target)
+    {
+        case "allies":
+        case "axis":
+        case "spectator":
+            return players_get_list(target);
+        case "alives":
+            return players_get_list(undefined, true);
+        case "allies_alive":
+        case "axis_alive":
+            return players_get_list(strTok(target, "_")[0], true);
+        case "allies_death":
+        case "axis_death":
+            return players_get_list(strTok(target, "_")[0], false);
+        default:
+            if (target[0] == "@")
+            {
+                foreach(player in level.players)
+                    if (lethalbeats\string::string_starts_with(player.name, "@" + target))
+                        return player;
+            }
+			else return level.players;
+            break;
+    }
 }
 
 player_get_perks()
@@ -315,20 +350,21 @@ summary: Returns a player weapons list.
 player_get_weapons(returnsAltWeapon)
 {
 	if (!isDefined(returnsAltWeapon)) returnsAltWeapon = false;
-	return returnsAltWeapon ? self getWeaponsList("primary") : array_filter(self getWeaponsList("primary"), ::filter_not_starts_with, "alt_");
+	weapons = array_remove_undefined(self getWeaponsList("primary"));
+	return returnsAltWeapon ? weapons : array_filter(weapons, ::filter_not_starts_with, "alt_");
 }
 
 player_get_primary()
 {
 	primary = self getWeaponsListPrimaries()[0];
-	if (isDefined(primary) && primary == "none") return undefined;
+	if (!isDefined(primary) || primary == "none") return undefined;
 	return primary;
 }
 
 player_get_secondary()
 {
 	secondary = self getWeaponsListPrimaries()[1];
-	if (isDefined(secondary) && secondary == "none") return undefined;
+	if (!isDefined(secondary) || secondary == "none") return undefined;
 	return secondary;
 }
 
@@ -341,7 +377,10 @@ player_get_weapon_index(weapon, baseNameFormat)
 player_is_weapon_primary(weapon, baseNameFormat)
 {
 	if (!isDefined(baseNameFormat)) baseNameFormat = false;
-	weaponTarget = self getWeaponsListPrimaries()[0];
+	weaponList = self getWeaponsListPrimaries();
+	if (!isDefined(weaponList) || weaponList.size == 0 || weaponList[0] == "none") return true;
+
+	weaponTarget = weaponList[0];
 	if (!isDefined(weaponTarget)) return false;
 	if (!baseNameFormat) return weapon == weaponTarget;
 	return weapon_get_baseName(weapon) == weapon_get_baseName(weaponTarget);
@@ -397,8 +436,11 @@ summary: Checks if the player possesses a specific weapon. If `relative` is true
 */
 player_has_weapon(weapon, relative)
 {
-	weapon = weapon_get_baseName(weapon);
-	if (isDefined(relative) && relative) return isDefined(self player_get_build_weapon(weapon));
+	if (isDefined(relative) && relative)
+	{
+		weapon = weapon_get_baseName(weapon);
+		return isDefined(self player_get_build_weapon(weapon));
+	}
 	return self hasWeapon(weapon);
 }
 
@@ -415,51 +457,111 @@ player_has_killstreak()
 player_save_ammo(weapon, key)
 {
 	if (!isDefined(key)) key = weapon;
+	if (!isDefined(self.restoreAmmo)) self.restoreAmmo = [];
+	self.restoreAmmo[key] = self player_get_ammo_data(weapon);
+}
 
+player_restore_ammo(weapon, key, clear)
+{
+	if (!isDefined(clear)) clear = false;
+	if (!isDefined(key)) key = weapon;
+	if (!isDefined(self.restoreAmmo) || !isDefined(self.restoreAmmo[key])) return;	
+	ammoDataToRestore = self.restoreAmmo[key];
+	self player_set_ammo_from_data(weapon, ammoDataToRestore);
+	if (clear) self.restoreAmmo = array_remove_key(self.restoreAmmo, key);
+}
+
+player_get_ammo_data(weapon)
+{
+	ammoData = [];
 	if (weapon_has_attach_alt(weapon))
 	{
-		self.restoreWeaponClipAmmo["alt_" + key] = self getWeaponAmmoClip("alt_" + weapon);
-		self.restoreWeaponStockAmmo["alt_" + key] = self getWeaponAmmoStock("alt_" + weapon);
-		self.restoreWeaponClipAmmo[key] = self getWeaponAmmoClip(weapon);
-		self.restoreWeaponStockAmmo[key] = self getWeaponAmmoStock(weapon);
-		return;
+		ammoData["type"] = "alt";
+		ammoData["clip"] = self getWeaponAmmoClip(weapon);
+		ammoData["stock"] = self getWeaponAmmoStock(weapon);
+		ammoData["alt_clip"] = self getWeaponAmmoClip("alt_" + weapon);
+		ammoData["alt_stock"] = self getWeaponAmmoStock("alt_" + weapon);
 	}
-
-	if (weapon_has_attach_akimbo(weapon))
+	else if (weapon_has_attach_akimbo(weapon))
 	{
-		self.restoreWeaponClipAmmo["left_" + key] = self getWeaponAmmoClip(weapon, "left");
-		self.restoreWeaponClipAmmo["right_" + key] = self getWeaponAmmoClip(weapon, "right");
+		ammoData["type"] = "akimbo";
+		ammoData["left_clip"] = self getWeaponAmmoClip(weapon, "left");
+		ammoData["right_clip"] = self getWeaponAmmoClip(weapon, "right");
+		ammoData["stock"] = self getWeaponAmmoStock(weapon);
 	}
-	else self.restoreWeaponClipAmmo[key] = self getWeaponAmmoClip(weapon);
-	self.restoreWeaponStockAmmo[key] = self getWeaponAmmoStock(weapon);
+	else
+	{
+		ammoData["type"] = "standard";
+		ammoData["clip"] = self getWeaponAmmoClip(weapon);
+		ammoData["stock"] = self getWeaponAmmoStock(weapon);
+	}
+	return ammoData;
 }
 
-player_restore_ammo(weapon, key)
+player_set_ammo_from_data(weapon, ammoData)
 {
-	if (!isDefined(key)) key = weapon;
-	if (isDefined(self.restoreWeaponClipAmmo["alt_" + key]))
+	if (!isDefined(ammoData) || !isDefined(ammoData["type"])) return;
+	switch(ammoData["type"])
 	{
-		self setWeaponAmmoClip("alt_" + weapon, self.restoreWeaponClipAmmo["alt_" + key]);
-		self setWeaponAmmoStock("alt_" + weapon, self.restoreWeaponStockAmmo["alt_" + key]);
-		self setWeaponAmmoClip(weapon, self.restoreWeaponClipAmmo[key]);
-		self setWeaponAmmoStock(weapon, self.restoreWeaponStockAmmo[key]);
-		return;
-	}
+		case "alt":
+			self setWeaponAmmoClip(weapon, ammoData["clip"]);
+			self setWeaponAmmoStock(weapon, ammoData["stock"]);
+			self setWeaponAmmoClip("alt_" + weapon, ammoData["alt_clip"]);
+			self setWeaponAmmoStock("alt_" + weapon, ammoData["alt_stock"]);
+			break;
 
-	if (isDefined(self.restoreWeaponClipAmmo["left_" + key]))
-	{
-		self setWeaponAmmoClip(weapon, self.restoreWeaponClipAmmo["left_" + key], "left");
-		self setWeaponAmmoClip(weapon, self.restoreWeaponClipAmmo["right_" + key], "right");
+		case "akimbo":
+			self setWeaponAmmoClip(weapon, ammoData["left_clip"], "left");
+			self setWeaponAmmoClip(weapon, ammoData["right_clip"], "right");
+			self setWeaponAmmoStock(weapon, ammoData["stock"]);
+			break;
+
+		case "standard":
+		default:
+			self setWeaponAmmoClip(weapon, ammoData["clip"]);
+			self setWeaponAmmoStock(weapon, ammoData["stock"]);
+			break;
 	}
-	else self setWeaponAmmoClip(weapon, self.restoreWeaponClipAmmo[key]);
-	self setWeaponAmmoStock(weapon, self.restoreWeaponStockAmmo[key]);
 }
 
-player_enable_usability()
+player_add_ammo_from_data(weapon, ammoData)
 {
-	self.disabledUsability--;	
-	if (!self.disabledUsability)
-		self EnableUsability();
+	if (!isDefined(ammoData) || !isDefined(ammoData["type"])) return;
+
+	switch(ammoData["type"])
+	{
+		case "alt":
+			currentStock = self getWeaponAmmoStock(weapon);
+			ammoToAdd = ammoData["clip"] + ammoData["stock"];
+			maxStock = weaponMaxAmmo(weapon);
+			newStock = int(min(currentStock + ammoToAdd, maxStock));
+			self setWeaponAmmoStock(weapon, newStock);
+			
+			altWeapon = "alt_" + weapon;
+			currentAltStock = self getWeaponAmmoStock(altWeapon);
+			altAmmoToAdd = ammoData["alt_clip"] + ammoData["alt_stock"];
+			maxAltStock = weaponMaxAmmo(altWeapon);
+			newAltStock = int(min(currentAltStock + altAmmoToAdd, maxAltStock));
+			self setWeaponAmmoStock(altWeapon, newAltStock);
+			break;
+
+		case "akimbo":
+			currentStock = self getWeaponAmmoStock(weapon);
+			ammoToAdd = ammoData["left_clip"] + ammoData["right_clip"] + ammoData["stock"];
+			maxStock = weaponMaxAmmo(weapon);
+			newStock = int(min(currentStock + ammoToAdd, maxStock));
+			self setWeaponAmmoStock(weapon, newStock);
+			break;
+
+		case "standard":
+		default:
+			currentStock = self getWeaponAmmoStock(weapon);
+			ammoToAdd = ammoData["clip"] + ammoData["stock"];
+			maxStock = weaponMaxAmmo(weapon);
+			newStock = int(min(currentStock + ammoToAdd, maxStock));
+			self setWeaponAmmoStock(weapon, newStock);
+			break;
+	}
 }
 
 /*
@@ -470,7 +572,7 @@ summary: Play local sounds on players. You can optionally specify the equipment 
 */
 players_play_sound(sound, team, excludeTargets)
 {	
-	if (isDefined(team)) targets = player_get_list(team);
+	if (isDefined(team)) targets = players_get_list(team);
 	else targets = level.players;
 	if (isDefined(excludeTargets)) targets = array_difference(targets, excludeTargets);
 	foreach(player in targets)
@@ -483,8 +585,152 @@ player_take_weapon(weapon)
 	self takeWeapon(weapon);
 }
 
+player_take_all_weapons()
+{
+	foreach(weapon in self getWeaponsListPrimaries())
+		self takeWeapon(weapon);
+}
+
 player_take_all_weapon_buffs()
 {
 	foreach(buff in self player_get_weapons_buffs())
 		self player_unset_Perk(buff);
+}
+
+player_is_usability_enabled()
+{
+    return !self.disabledusability;
+}
+
+player_disable_usability()
+{
+    self.disabledusability = true;
+    self disableusability();
+}
+
+player_enable_usability()
+{
+    self.disabledusability = false;
+	self enableusability();
+}
+
+player_is_weapon_enabled()
+{
+    return !self.disabledweapon;
+}
+
+player_disable_weapons()
+{
+    self.disabledweapon = true;
+    self disableweapons();
+}
+
+player_enable_weapons()
+{
+    self.disabledweapon = false;
+	self enableweapons();
+}
+
+player_is_weapon_switch_enabled()
+{
+    return !self.disabledweaponswitch;
+}
+
+player_disable_weapon_switch()
+{
+    self.disabledweaponswitch = true;
+    self disableweaponswitch();
+}
+
+player_enable_weapon_switch()
+{
+    self.disabledweaponswitch = false;
+	self enableweaponswitch();
+}
+
+player_is_offhand_weapon_enabled()
+{
+    return !self.disabledoffhandweapons;
+}
+
+player_disable_offhand_weapons()
+{
+    self.disabledoffhandweapons = true;
+    self disableoffhandweapons();
+}
+
+player_enable_offhand_weapons()
+{
+    self.disabledoffhandweapons = false;
+	self enableoffhandweapons();
+}
+
+player_is_weapon_pickup_enabled()
+{
+    return !self.disabledWeaponPickup;
+}
+
+player_disable_weapon_pickup()
+{
+    self.disabledWeaponPickup = true;
+    self disableWeaponPickup();
+}
+
+player_enable_weapon_pickup()
+{
+    self.disabledWeaponPickup = false;
+	self enableWeaponPickup();
+}
+
+player_give_laststand_weapon(weapon)
+{
+	self thread _player_enable_laststand_weapon();
+
+	self.lastStandWeapon = weapon;
+	self.removeLastStandWeapon = !self hasWeapon(weapon);
+	if (self.removeLastStandWeapon) self player_give_weapon(weapon);
+	else self player_save_ammo(weapon, "onlaststand");
+
+	self player_give_max_ammo(weapon);
+	self switchtoweapon(weapon);
+
+	self player_disable_usability();
+	self player_disable_weapon_switch();
+	self player_disable_offhand_weapons();
+	self player_disable_weapon_pickup();
+}
+
+_player_enable_laststand_weapon()
+{
+	self endon("death");
+    self endon("disconnect");
+	self endon("revive");
+    level endon("game_ended");
+
+	self maps\mp\_utility::freezeControlsWrapper(true);
+    wait 0.3;
+    self maps\mp\_utility::freezeControlsWrapper(false);
+}
+
+player_set_action_slot(slotID, type, item)
+{
+	self.saved_actionslotdata[slotID].type = type;
+    self.saved_actionslotdata[slotID].item = item;
+    self setActionSlot(slotID, type, item);
+}
+
+player_black_screen(time)
+{
+	if (!isDefined(time)) time = 0.5;
+	self visionSetNakedForPlayer("blacktest", 0);
+	wait time;
+	self visionSetNakedForPlayer("", 2);
+}
+
+player_can_see(targetOrigin)
+{
+	eyePos = self getEye();
+	toTargetDir = vectorNormalize(targetOrigin - eyePos);
+	forward = anglesToForward(self.angles);
+	return vectorDot(toTargetDir, forward) > 0.18;
 }

@@ -27,6 +27,11 @@
 #define VZSCOPE "vzscope"
 #define CAMO "camo"
 
+attach_is_silencer(attach)
+{
+	return attach == SILENCER || attach == SILENCER02 || attach == SILENCER03;
+}
+
 /*
 ///DocStringBegin
 detail: attach_is_alt(attach: <String>): <Bool>
@@ -336,4 +341,96 @@ attach_build(attach, weapon_basename)
 	wep_class = weapon_get_class(weapon_basename);
 	if (attach == SILENCER) return attach_build_silencer(wep_class);
 	return attach_build_rail(attach, weapon_basename, wep_class);
+}
+
+attach_get_display_name(attach)
+{
+    switch(attach)
+    {
+        case "acog":
+            return "ACOG Scope";
+        case "reflex":
+            return "Red Dot Sight";
+        case "eotech":
+            return "Holographic Sight";
+        case "thermal":
+            return "Thermal Scope";
+        case "vzscope":
+            return "Variable Zoom";
+        case "hamrhybrid":
+        case "hybrid":
+            return "Hybrid Sight";
+        case "silencer":
+        case "silencer02":
+        case "silencer03":
+            return "Suppressed";
+        case "grip":
+            return "Foregrip";
+        case "akimbo":
+            return "Akimbo";
+        case "tactical":
+            return "Tactical Knife";
+        case "shotgun":
+            return "Shotgun";
+        case "gl":
+        case "gp25":
+        case "m320":
+            return "Grenade Launcher";
+        case "rof":
+            return "Rapid Fire";
+        case "xmags":
+            return "Extended Mags";
+        case "heartbeat":
+            return "Heartbeat Sensor";
+        case "fmj":
+            return "FMJ";
+        case "lockair":
+            return "Air Lock-on";
+        default:
+            return undefined;
+    }
+}
+
+attach_get_tag(attach)
+{
+    switch (attach)
+	{
+        case "acog": return "tag_acog_2";
+        case "reflex": return "tag_red_dot";
+        case "eotech": return "tag_eotech";
+        case "thermal": return "tag_thermal_scope";
+        case "vzscope":
+        case "hamrhybrid":
+        case "hybrid":
+            return "tag_magnifier";
+        case "silencer":
+        case "silencer02":
+        case "silencer03":
+            return "tag_silencer";
+        case "grip": return "tag_foregrip";
+        case "heartbeat": return "tag_heartbeat";
+        case "xmags": return "tag_clip";
+        default: return undefined;
+    }
+}
+
+attach_get_model(attach)
+{
+    switch (attach)
+	{
+        case "acog": return "weapon_acog";
+        case "reflex": return "weapon_reflex_iw5";
+        case "eotech": return "weapon_eotech";
+        case "thermal": return "weapon_thermal_scope";
+        //case "vzscope":
+        case "hamrhybrid": return "weapon_hamr_hybrid";
+        case "hybrid": return "weapon_magnifier";
+        case "silencer": return "weapon_silencer_01";
+        case "silencer02": return "weapon_silencer_02";
+        case "silencer03": return "weapon_silencer_03";
+        case "grip": return "weapon_mp5k_foregrip";
+        case "heartbeat": return "weapon_heartbeat_iw5";
+        //case "xmags": return "tag_clip";
+        default: return undefined;
+    }
 }

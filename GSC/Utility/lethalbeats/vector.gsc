@@ -11,6 +11,11 @@
 
 #include lethalbeats\math;
 
+vector_truncate(vec, places)
+{
+    return (math_truncate(vec[0], places), math_truncate(vec[1], places), math_truncate(vec[2], places));
+}
+
 /*
 ///DocStringBegin
 detail: vector_zeros(): <Vector>
@@ -523,4 +528,58 @@ summary: Returns the origin vector with the z component set to zero.
 vector_flat_origin(org)
 {
     return (org[0], org[1], 0);
+}
+
+vector_to_euler_angles(forward, up)
+{
+    forward = vectorNormalize(forward);
+    up = vectorNormalize(up);
+
+    right = vector_cross(up, forward);
+    right = vectorNormalize(right);
+
+    m00 = forward[0]; m01 = right[0]; m02 = up[0];
+    m10 = forward[1]; m11 = right[1]; m12 = up[1];
+    m20 = forward[2]; m21 = right[2]; m22 = up[2];
+
+    if (m20 < 1)
+    {
+        if (m20 > -1)
+        {
+            pitch = asin(-m20);
+            yaw   = math_atan2(m10, m00);
+            roll  = math_atan2(m21, m22);
+        }
+        else
+        {
+            pitch = 90;
+            yaw   = -1 * math_atan2(-m12, m11);
+            roll  = 0;
+        }
+    }
+    else
+    {
+        pitch = -90;
+        yaw   = math_atan2(-m12, m11);
+        roll  = 0;
+    }
+
+    return (pitch, yaw, roll);
+}
+
+vector_rotate_around_axis(vec, axis, angle)
+{
+    axis = vectorNormalize(axis);
+    radians = angle * (3.14159 / 180);
+    cosA = cos(radians);
+    sinA = sin(radians);
+
+    cross = vector_cross(axis, vec);
+    dot = vectorDot(axis, vec);
+
+    term1 = vector_scale(vec, cosA);
+    term2 = vector_scale(cross, sinA);
+    term3 = vector_scale(axis, dot * (1 - cosA));
+
+    return vector_add(vector_add(term1, term2), term3);
 }

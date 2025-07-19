@@ -423,11 +423,11 @@ array_thread(array, func, arg1, arg2, arg3, arg4, arg5)
 
 /*
 ///DocStringBegin
-detail: array_ent_call(entities: <Any[]>, func: <Function>, arg1?: <Any>, arg2?: <Any>, arg3?: <Any>, arg4?: <Any>, arg5?: <Any>): <Void>
+detail: array_call_ent(entities: <Any[]>, func: <Function>, arg1?: <Any>, arg2?: <Any>, arg3?: <Any>, arg4?: <Any>, arg5?: <Any>): <Void>
 summary: Applies foreach to an entities and call associated function to being able to handle the entity and additional arguments.
 ///DocStringEnd
 */
-array_ent_call(entities, func, arg1, arg2, arg3, arg4, arg5)
+array_call_ent(entities, func, arg1, arg2, arg3, arg4, arg5)
 {
 	args = _args_ent_format([arg1, arg2, arg3, arg4, arg5]);
 	foreach(ent in entities)
@@ -446,11 +446,11 @@ array_ent_call(entities, func, arg1, arg2, arg3, arg4, arg5)
 
 /*
 ///DocStringBegin
-detail: array_ent_thread(entities: <Any[]>, func: <Function>, arg1?: <Any>, arg2?: <Any>, arg3?: <Any>, arg4?: <Any>, arg5?: <Any>): <Void>
+detail: array_thread_ent(entities: <Any[]>, func: <Function>, arg1?: <Any>, arg2?: <Any>, arg3?: <Any>, arg4?: <Any>, arg5?: <Any>): <Void>
 summary: Applies foreach to an entities and call associated function to being able to handle the entity and additional arguments in thread, preventing code interruption.
 ///DocStringEnd
 */
-array_ent_thread(entities, func, arg1, arg2, arg3, arg4, arg5)
+array_thread_ent(entities, func, arg1, arg2, arg3, arg4, arg5)
 {	
 	args = _args_ent_format([arg1, arg2, arg3, arg4, arg5]);
 	foreach(ent in entities)
@@ -791,6 +791,23 @@ array_remove_key(array, key)
 	return result;
 }
 
+array_remove_keys(array, key1, key2, key3, key4, key5, key6, key7, key8)
+{
+	if (isArray(key1)) keysToRemove = key1;
+	else keysToRemove = array_remove_undefined([key1, key2, key3, key4, key5, key6, key7, key8]);
+	
+	result = [];
+	keys = getArrayKeys(array);
+	for (i = 0; i < keys.size; i++)
+	{
+		keep = true;
+		for (j = 0; j < keysToRemove.size; j++)
+			if (keys[i] == keysToRemove[j]) keep = false;
+		if (keep) result[keys[i]] = array[keys[i]];
+	}
+	return result;
+}
+
 /*
 ///DocStringBegin
 detail: array_from_dvar(dvar: <Dvar>, split: <String>): <Any[]>
@@ -1084,13 +1101,14 @@ summary: Returns an array by removing all undefined values from the original arr
 */
 array_remove_undefined(array)
 {
-	result = [];
-	foreach (item in array)
-	{
-		if (!isDefined(item)) continue;
-		newArray[newArray.size] = item;
-	}
-	return result;
+	newArray = [];
+    foreach (i, item in array)
+    {
+        if (!isdefined(item))
+            continue;
+        newArray[newArray.size] = item;
+    }
+    return newArray;
 }
 
 /*
