@@ -112,6 +112,12 @@ summary: Combines arrays optionally up to 4 and returns the result. This functio
 */
 array_combine(array_a, array_b, array_c, array_d)
 {
+	if (!isDefined(array_b))
+	{
+		print("[Error]: Function array_combine required min 2 arguments.");
+		return undefined;
+	}
+
 	result = [];
 	
 	for (i = 0; i < array_a.size; i++)
@@ -768,10 +774,12 @@ summary: Returns an array of all values from the given array, preserving the ord
 */
 array_get_values(array)
 {
+	if (!isDefined(array)) return [];
 	result = [];
 	keys = getArrayKeys(array);
+	if (!keys.size) return [];
 	for (i = 0; i < keys.size; i++)
-		result[result.size] = array[keys[i]];
+		result = array_combine(result, array[keys[i]]);
 	return result;
 }
 
@@ -1045,7 +1053,19 @@ array_remove_index(array, index)
 
 /*
 ///DocStringBegin
-detail: array_pop(array: <Any[]>): <Any[]> -> [updatedArray: <Any[]>, popItem: <Any>]
+detail: array_push(array: <Any[]>, value: <Any>): <Any[]>
+summary: Appends the specified value to the end of the array and returns the updated array.
+///DocStringEnd
+*/
+array_push(array, value)
+{
+	array[array.size] = value;
+	return array;
+}
+
+/*
+///DocStringBegin
+detail: array_pop(array: <Any[]>): <[updatedArray: <Any[]>, popItem: <Any>]>
 summary: Removes the last element from the array and returns an array containing the updated array and the removed element.
 ///DocStringEnd
 */
@@ -1359,7 +1379,7 @@ array_flatten(array)
 	for (i = 0; i < array.size; i++)
 	{
 		if (isArray(array[i]))
-			flat = flat + array_flatten(array[i]);
+			flat = array_combine(flat, array_flatten(array[i]));
 		else
 			flat[flat.size] = array[i];
 	}

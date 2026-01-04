@@ -36,14 +36,34 @@ player_count(team, alives)
 	return count;
 }
 
-player_give_weapon(weapon, switchInmmediate, maxAmmo)
+player_give_weapon(weapon, switchInmmediate, maxAmmo, spawnWeapon)
 {
+	if (!isDefined(switchInmmediate)) switchInmmediate = 0;
+	if (!isDefined(maxAmmo)) maxAmmo = 0;
+	if (!isDefined(spawnWeapon)) spawnWeapon = 0;
+
 	if (!string_contains(weapon, "_mp_") && !string_ends_with(weapon, "_mp"))
 		weapon = weapon + "_mp";
 	
 	self giveWeapon(weapon);
-	if (isDefined(maxAmmo) && maxAmmo) self giveMaxAmmo(weapon);
-	if (isDefined(switchInmmediate) && switchInmmediate) self switchToWeaponImmediate(weapon);
+
+	if (self player_is_weapon_primary(weapon)) 
+	{
+		self.pers["primaryWeapon"] = weapon;
+		self.primaryweapon = weapon;
+	}
+    else self.secondaryweapon = weapon;
+
+	if (self player_get_weapons().size) self switchToWeapon(weapon);
+	else if (switchInmmediate) self switchToWeaponImmediate(weapon);	
+	if (maxAmmo) self giveMaxAmmo(weapon);
+	if (spawnWeapon) self setSpawnWeapon(weapon);
+}
+
+_switchToWeapon(weapon)
+{
+	waittillframeend;
+	self switchToWeaponImmediate(weapon);
 }
 
 player_give_spawn_weapon(weapon, switch_to_weapon)
@@ -89,9 +109,10 @@ player_set_offhand_secondary_class(class)
 	self setOffhandPrimaryClass(class);
 }
 
-player_give_perk(perkName, useSlot)
+player_give_perk(perkName, useSlot, pro)
 {
 	if (!isDefined(useSlot)) useSlot = false;
+	if (!isDefined(pro)) pro = true;
 
 	if (string_contains(perkName, "_mp"))
 	{
@@ -121,15 +142,30 @@ player_give_perk(perkName, useSlot)
 	}
 
 	self player_set_perk(perkName, useSlot);
-	self player_set_extra_perks(perkName);
+	self player_set_extra_perk(perkName);
+
+	if (pro)
+	{
+		perkUpgrade = maps\mp\gametypes\_class::getPerkUpgrade(perkName);
+		if (perkUpgrade != "specialty_null") player_give_perk(perkUpgrade, false);
+	}
 }
 
 player_give_all_perks()
 {
-	
+	foreach(perk in lethalbeats\perk::perk_get_list())
+	{
+		if (perk == "specialty_overkill" || perk == "specialty_assassin")
+			continue;
+		
+		if (isDefined(level.infiniteStock) && level.infiniteStock && perk == "specialty_scavenger")
+			continue;
+
+		self player_give_perk(perk);
+	}
 }
 
-player_set_extra_perks(perkName)
+player_set_extra_perk(perkName)
 {
 	if(perkName == "specialty_coldblooded")
 		self player_give_perk("specialty_heartbreaker", false);
@@ -149,6 +185,18 @@ player_set_perk(perkName, useSlot)
 		self thread [[level.perkSetFuncs[perkName]]]();
 	
 	self setPerk(perkName, !isDefined(level.scriptPerks[perkName]), useSlot);
+}
+
+player_unset_extra_perk(perkName)
+{
+	if(perkName == "specialty_coldblooded")
+		self player_unset_Perk("specialty_heartbreaker");
+	if(perkName == "specialty_fasterlockon")
+		self player_unset_Perk("specialty_armorpiercing");
+	if(perkName == "specialty_spygame")
+		self player_unset_Perk("specialty_empimmune");
+	if(perkName == "specialty_rollover")
+		self player_unset_Perk("specialty_assists");
 }
 
 player_unset_Perk(perkName)
@@ -191,7 +239,7 @@ player_refill_single_count_ammo(endonOnDeath)
     for (;;)
     {
 		wait 0.5;
-		if(player_is_infect(self)) break;
+		if(self player_is_infect()) break;
 		weapon = self getCurrentWeapon();
 		if (!isDefined(weapon) || weapon_get_class(weapon) != "riot" && self getammocount(weapon) == 0)
         {
@@ -232,6 +280,12 @@ player_nades_refill(endonOnDeath)
 	}
 }
 
+/*
+///DocStringBegin
+detail: player_stinger_fire(endonOnDeath: <Bool>): <Void>
+summary: Allows aiming and firing with the stinger. Requires a thread to avoid interrupting the code.
+///DocStringEnd
+*/
 player_stinger_fire(endonOnDeath)
 {
 	level endon("game_ended");
@@ -258,15 +312,11 @@ player_stinger_fire(endonOnDeath)
 
 player_give_nade(grenade, slot)
 {
-	if (!isDefined(slot)) slot = 0;	
+	if (!isDefined(slot)) slot = 0;
+	else if (isString(slot)) slot = slot == "lethal" ? 0 : 1;
+
 	if (slot) self setOffhandSecondaryClass(weapon_get_equipment_class(grenade));
 	else self setOffhandPrimaryClass(weapon_get_equipment_class(grenade));
-	
-	if(string_contains(grenade, "sp"))
-	{
-		self player_give_perk(grenade, false);
-		return;
-	}
 	
 	self player_give_weapon(grenade);
 	if (grenade != "emp_grenade_mp") self player_set_perk(grenade, false);
@@ -285,6 +335,11 @@ player_is_flashed()
 	return gettime() < self.flashEndTime;
 }
 
+player_is_really_alive()
+{
+	return isAlive(self) && !isDefined(self.fauxdead);
+}
+
 /*
 ///DocStringBegin
 detail: players_get_list(team?: <String | Undefined>, alives?: <Boolean | Undefined>): <Entity[]>
@@ -293,11 +348,11 @@ summary: Returns an array of players optionally filtered by team and alive statu
 */
 players_get_list(team, alives)
 {
-	players = [];
+    players = [];
 	foreach (player in level.players)
 	{
-		if (isDefined(alives) && isAlive(player) != alives) continue;
 		if (isDefined(team) && player.team != team) continue;
+		if (isDefined(alives) && (alives != player player_is_really_alive())) continue;
 		players[players.size] = player;
 	}
 	return players;
@@ -408,24 +463,42 @@ player_get_build_weapon(baseName)
     return array_find(weapons, lethalbeats\string::string_contains, baseName);
 }
 
-player_get_fraction_ammo(weapon) 
+player_get_fraction_ammo(weapon, ignoreClip)
 {
-    if (weapon_has_attach_akimbo(weapon))
+	if (!isDefined(ignoreClip)) ignoreClip = false;
+	if (weapon_has_attach_akimbo(weapon))
 	{
-        weaponLeftFraction = (self getFractionMaxAmmo(weapon) * 0.475) + ((self getWeaponAmmoClip(weapon) / weaponClipSize(weapon)) * 0.025);
-        weaponRightFraction = (self getFractionMaxAmmo(weapon) * 0.475) + ((self getWeaponAmmoClip(weapon, "left") / weaponClipSize(weapon)) * 0.025);
-        return weaponLeftFraction + weaponRightFraction;
-    } 
+		weaponLeftFraction = (self getFractionMaxAmmo(weapon) * 0.475);
+		weaponRightFraction = (self getFractionMaxAmmo(weapon) * 0.475);
+		if (!ignoreClip)
+		{
+			weaponLeftFraction += ((self getWeaponAmmoClip(weapon) / weaponClipSize(weapon)) * 0.025);
+			weaponRightFraction += ((self getWeaponAmmoClip(weapon, "left") / weaponClipSize(weapon)) * 0.025);
+		}
+		return weaponLeftFraction + weaponRightFraction;
+	}
 	else if (weapon_has_attach_alt(weapon))
 	{
-        weaponFraction = (self getFractionMaxAmmo(weapon) * 0.75) + ((self getWeaponAmmoClip(weapon) / weaponClipSize(weapon)) * 0.05);
-        weapon = "alt_" + weapon;
-        if (weapon_has_attach_gl(weapon)) weaponAltFraction = (self getFractionMaxAmmo(weapon) * 0.1) + ((self getWeaponAmmoClip(weapon) / weaponClipSize(weapon)) * 0.1);
-        else weaponAltFraction = (self getFractionMaxAmmo(weapon) * 0.15) + ((self getWeaponAmmoClip(weapon) / weaponClipSize(weapon)) * 0.05);
-        return weaponFraction + weaponAltFraction;
-    }
+		weaponFraction = (self getFractionMaxAmmo(weapon) * 0.75);
+		if (!ignoreClip) weaponFraction += ((self getWeaponAmmoClip(weapon) / weaponClipSize(weapon)) * 0.05);
+		weapon = "alt_" + weapon;
+		if (weapon_has_attach_gl(weapon))
+		{
+			weaponAltFraction = (self getFractionMaxAmmo(weapon) * 0.1);
+			if (!ignoreClip) weaponAltFraction += ((self getWeaponAmmoClip(weapon) / weaponClipSize(weapon)) * 0.1);
+		}
+		else
+		{
+			weaponAltFraction = (self getFractionMaxAmmo(weapon) * 0.15);
+			if (!ignoreClip) weaponAltFraction += ((self getWeaponAmmoClip(weapon) / weaponClipSize(weapon)) * 0.05);
+		}
+		return weaponFraction + weaponAltFraction;
+	}
 
-    return (self getFractionMaxAmmo(weapon) * 0.95) + ((self getWeaponAmmoClip(weapon) / weaponClipSize(weapon)) * 0.05);
+	fraction = (self getFractionMaxAmmo(weapon) * 0.95);
+	if (!ignoreClip) fraction += ((self getWeaponAmmoClip(weapon) / weaponClipSize(weapon)) * 0.05);
+	else if (self getWeaponAmmoStock(weapon) == weaponMaxAmmo(weapon)) fraction = 1;
+	return fraction;
 }
 
 /*
@@ -444,9 +517,10 @@ player_has_weapon(weapon, relative)
 	return self hasWeapon(weapon);
 }
 
-player_has_max_ammo(weapon)
+player_has_max_ammo(weapon, ignoreClip)
 {
-	return self player_get_fraction_ammo(weapon) == 1;
+	if (!isDefined(ignoreClip)) ignoreClip = false;
+	return self player_get_fraction_ammo(weapon, ignoreClip) == 1;
 }
 
 player_has_killstreak()
@@ -467,7 +541,7 @@ player_restore_ammo(weapon, key, clear)
 	if (!isDefined(key)) key = weapon;
 	if (!isDefined(self.restoreAmmo) || !isDefined(self.restoreAmmo[key])) return;	
 	ammoDataToRestore = self.restoreAmmo[key];
-	self player_set_ammo_from_data(weapon, ammoDataToRestore);
+	self player_set_ammo_data(weapon, ammoDataToRestore);
 	if (clear) self.restoreAmmo = array_remove_key(self.restoreAmmo, key);
 }
 
@@ -498,7 +572,7 @@ player_get_ammo_data(weapon)
 	return ammoData;
 }
 
-player_set_ammo_from_data(weapon, ammoData)
+player_set_ammo_data(weapon, ammoData)
 {
 	if (!isDefined(ammoData) || !isDefined(ammoData["type"])) return;
 	switch(ammoData["type"])
@@ -585,10 +659,15 @@ player_take_weapon(weapon)
 	self takeWeapon(weapon);
 }
 
-player_take_all_weapons()
+player_take_all_weapons(onlyPrimaries)
 {
-	foreach(weapon in self getWeaponsListPrimaries())
+	if (!isDefined(onlyPrimaries)) onlyPrimaries = false;
+	if (onlyPrimaries)
+	{
+		foreach(weapon in self getWeaponsListPrimaries())
 		self takeWeapon(weapon);
+	}
+	else self takeAllWeapons();
 }
 
 player_take_all_weapon_buffs()
@@ -733,4 +812,54 @@ player_can_see(targetOrigin)
 	toTargetDir = vectorNormalize(targetOrigin - eyePos);
 	forward = anglesToForward(self.angles);
 	return vectorDot(toTargetDir, forward) > 0.18;
+}
+
+/*
+///DocStringBegin
+detail: player_custom_specialist_KillStreak(): <Void>
+summary: Requiere definir los array `level.gametypeKillStreak` y `level.gametypeKillStreakSplash`
+///DocStringEnd
+*/
+player_give_gametype_KillStreak()
+{
+	if(!getDvarInt("scr_" + level.gameType +"_killstreak") || self isTestClient()) return;
+	if (!isDefined(self.killstreak)) self.killstreak = 0;
+	if(self.killstreak >= level.gametypeKillStreak.size) return;
+	
+	perk = level.gametypeKillStreak[self.killstreak];
+	if(perk == "all_perks")
+	{
+		self player_give_all_perks();
+		self lethalbeats\hud::hud_splash_killstreak("all_perks_bonus", self.killstreak);
+	}
+	else
+	{
+		self player_give_perk(perk);
+		self lethalbeats\hud::hud_splash_killstreak(level.gametypeKillStreakSplash[self.killstreak], self.killstreak, "pro");	
+	}
+}
+
+player_give_loadout(team, class, allowCopycat, setPrimarySpawnWeapon) 
+{
+	if(!isDefined(game["botWarfare"])) self maps\mp\gametypes\_class::giveLoadout(team, class, allowCopycat, setPrimarySpawnWeapon);
+	else
+	{
+		if(self isTestClient()) self maps\mp\bots\_bot_utility::botGiveLoadout(team, class, allowCopycat, setPrimarySpawnWeapon);
+		else self maps\mp\gametypes\_class::giveLoadout(team, class, allowCopycat, setPrimarySpawnWeapon);
+	}
+}
+
+player_clear_killstreak()
+{
+	self maps\mp\killstreaks\_killstreaks::clearKillstreaks();
+}
+
+player_clear_perks()
+{
+	self maps\mp\_utility::_clearperks();
+}
+
+player_get_enemy_team()
+{
+	return lethalbeats\utility::get_enemy_team(self.team);
 }

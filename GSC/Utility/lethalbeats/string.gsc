@@ -190,6 +190,8 @@ summary: Replaces all occurrences of the target substring with the new substring
 */
 string_replace(string, target, new_string)
 {
+    if (!isDefined(string)) return "";
+
     result = "";
     i = 0;
 

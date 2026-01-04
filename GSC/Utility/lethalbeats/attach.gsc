@@ -172,6 +172,12 @@ attach_get_camos()
 		camos[camos.size] = i < 10 ? "camo0" + i : CAMO + i;
 	return camos;
 }
+
+attach_get_random_camo()
+{
+	return lethalbeats\array::array_random(attach_get_camos());
+}
+
 /*
 ///DocStringBegin
 detail: attach_get_combos(attach: <String>, attachs: <Array>): <StringArray>
@@ -193,7 +199,7 @@ attach_get_combos(attach, attachs)
 
 /*
 ///DocStringBegin
-detail: attach_get_random(weapon_basename: <String>, attachs_count?: <Integer> = 2, return_builded?: <Bool> = true, include_none?: <Bool> = false): <StringArray>
+detail: attach_get_random(weapon_basename: <String>, attachs_count?: <Integer> = 2, return_builded?: <Bool> = true, include_none?: <Bool> = false): <String[]>
 summary: Returns an array of random attachments for a specified weapon. The number of attachments can be specified. If include_none is true, some slots may be left empty. If return_builded is true, the result will be a built attachment.
 ///DocStringEnd
 */
@@ -206,13 +212,13 @@ attach_get_random(weapon_basename, attachs_count, return_builded, include_none)
     max_attachs = weapon_get_max_attachs(weapon_basename);
     if (attachs_count > max_attachs) attachs_count = max_attachs;
 	
-	allowed_attachs = weapon_get_attachs(weapon_basename, return_builded);
-	
+	allowed_attachs = weapon_get_attachs(weapon_basename, false);
 	if (allowed_attachs.size < attachs_count) attachs_count = allowed_attachs.size;
 	attachs = [];
 	
-	while(attachs_count != 0)
+	while(attachs_count != 0 && allowed_attachs.size != 0)
 	{
+		if (allowed_attachs.size == 0) break;
 		if (include_none && randomInt(100) >= 50)
 		{
 			attachs_count--;
@@ -234,6 +240,7 @@ attach_get_random(weapon_basename, attachs_count, return_builded, include_none)
 	
 	return attachs;
 }
+
 /*
 ///DocStringBegin
 detail: attach_get_type(attach: <String>): <String>

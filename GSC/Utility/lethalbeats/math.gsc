@@ -119,7 +119,6 @@ math_tan(angle)
 {
     return tan(angle);
 }
-
 /*
 ///DocStringBegin
 detail: math_atan(angle: <Number>): <Number>

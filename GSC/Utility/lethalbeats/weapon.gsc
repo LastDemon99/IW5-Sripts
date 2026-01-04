@@ -22,10 +22,6 @@
 #define RECIPE_TABLE "mp/recipe.csv"
 #define RECIPE_WEAPONS_ROW 388
 
-#define STATS_TABLE "mp/statstable.csv"
-#define STATS_BASENAME_COLUMN 4
-#define STATS_DISPLAYNAME_COLUMN 3
-
 #define CHALLENGE_TABLE "mp/challengetable.csv"
 #define CHALLENGE_BASENAME_COLUMN 6
 #define CHALLENGE_TABLES_COLUMN 4
@@ -55,7 +51,7 @@ summary: Load custom pluto weapons and required data structures for this library
 weapon_init()
 {
 	level.customWeapons = [];
-	weapon_custom_add("iw5_cheytac", "Interveon", "sniper", ["acog", "silencer03", "thermal", "xmags", "heartbeat", "vzscope"], 2);
+	weapon_custom_add("iw5_cheytac", "Interveon", "sniper", ["acog", "silencer03", "thermal", "xmags", "heartbeat", "cheytacscopevz"], 2);
 	weapon_custom_add("iw5_ak74u", "AK74-u", "smg", ["reflex", "silencer", "rof", "acog", "eotech", "xmags", "thermal"]);
 
 	recipe_indexes = [];
@@ -85,7 +81,7 @@ weapon_custom_add(baseName, name, weapon_class, attachs, attachs_max_count)
 
 /*
 ///DocStringBegin
-detail: weapon_build(baseName: <String>, attachs?: <Array>, camo?: <Int> | <String> = 0): <String>
+detail: weapon_build(baseName: <String>, attachs?: <Array> | <Undefined>, camo?: <Int> | <String> | <Undefined> = 0): <String>
 summary: Builds the full weapon name with the given base name, attachments, and camo. If no attachments are provided, it returns the base weapon name with "none" attachments.
 ///DocStringEnd
 */
@@ -97,14 +93,14 @@ weapon_build(baseName, attachs, camo)
 
 	attachs = array_filter(attachs, ::filter_not_equal, "none");
 	attachs = array_map(attachs, ::attach_build, i(), baseName);
-	attachs = array_alphabetize(attachs);
 	hasSight = array_any(attachs, ::attach_is_sight);
 	camo = attach_build_camo(camo);
 	
-	fullname = baseName + "_mp_";
 	if (!hasSight && weapon_get_class(baseName) == "sniper")
-		fullname += weapon_get_barename(baseName) + "scope_";
+		attachs[attachs.size] = weapon_get_barename(baseName) + "scope";
+	attachs = array_alphabetize(attachs);
 
+	fullname = baseName + "_mp_";
 	if (camo != "") camo = "_" + camo;
 
 	return fullname + lethalbeats\string::string_join("_", attachs) + camo;
@@ -154,7 +150,7 @@ weapon_is_custom(baseName)
 
 /*
 ///DocStringBegin
-detail: weapon_is_cammo_allowed(target: <String>): <Bool>
+detail: weapon_is_cammo_allowed(baseName: <String>): <Bool>
 summary: Returns true if the weapon allows camo.
 ///DocStringEnd
 */
@@ -263,6 +259,9 @@ summary: Returns an array of weapons that match the given class.
 */
 weapon_get_list(weapon_class)
 {
+	if (!isDefined(weapon_class)) return array_flatten(array_map(WEAPON_CLASSES, ::weapon_get_list));
+	if (weapon_class == "lethal") return array_combine([FRAG, THROWING_KNIFE], GRENADES_OTHER);
+	if (weapon_class == "tactical") return array_combine(GRENADES_FLASH, GRENADES_SMOKE);
 	if (weapon_class == "custom") return array_get_keys(level.customWeapons);
 	if (weapon_class == "riot") weapons = ["riotshield"];
 	else
@@ -275,17 +274,6 @@ weapon_get_list(weapon_class)
 	custom_weapons = array_filter(array_get_keys(level.customWeapons), ::_filter_custom_weapon, weapon_class);
 	if (custom_weapons.size) return array_combine(weapons, custom_weapons);
 	return weapons;
-}
-
-/*
-///DocStringBegin
-detail: weapon_get_all(): <String[]>
-summary: Returns an array of all weapons.
-///DocStringEnd
-*/
-weapon_get_all()
-{
-	return array_flatten(array_map(WEAPON_CLASSES, ::weapon_get_list));
 }
 
 /*
@@ -308,6 +296,16 @@ summary: Returns an array of secondaries weapons.
 weapon_get_secondaries()
 {
 	return array_flatten(array_map(WEAPON_CLASSES_SECONDARY, ::weapon_get_list));
+}
+
+weapon_get_lethals()
+{
+	return weapon_get_list("lethal");
+}
+
+weapon_get_tacticals()
+{
+	return weapon_get_list("tactical");
 }
 
 /*
@@ -443,7 +441,7 @@ weapon_get_attachs(baseName, return_builded)
 	for (row = 2; tableLookupByRow(table, row, WEAPON_CHALLENGE_ATTACH_COLUMN) != ""; row++)
 		attachs[row - 2] = tableLookupByRow(table, row, WEAPON_CHALLENGE_ATTACH_COLUMN);
 	
-	if (isDefined(return_builded))
+	if (return_builded)
 	{
 		for(i = 0; i < attachs.size; i++)
 			if (attach_get_type(attachs[i]) == RAIL)
@@ -582,6 +580,22 @@ weapon_get_random_ammo_data(weapon)
 	}
 
 	return ammoData;
+}
+
+weapon_get_random()
+{
+	return array_random(weapon_get_list());
+}
+
+/*
+///DocStringBegin
+detail: weapon_get_classes(): <String[]>
+summary: Returns: ["pistol", "assault", "smg", "machine_pistol", "shotgun", "lmg", "sniper", "projectile", "riot"]
+///DocStringEnd
+*/
+weapon_get_classes()
+{
+	return WEAPON_CLASSES;
 }
 
 _filter_projectile(i) { return i != 46 && i != 51; }

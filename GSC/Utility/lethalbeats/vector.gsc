@@ -202,6 +202,11 @@ vector_scale(vec, scale)
     return (vec[0] * scale, vec[1] * scale, vec[2] * scale);
 }
 
+vector_multiply(vec, dif)
+{
+	return vector_scale(vec, dif);
+}
+
 /*
 ///DocStringBegin
 detail: vector_scale_components(vec1: <Vector>, vec2: <Vector>): <Vector>
@@ -582,4 +587,99 @@ vector_rotate_around_axis(vec, axis, angle)
     term3 = vector_scale(axis, dot * (1 - cosA));
 
     return vector_add(vector_add(term1, term2), term3);
+}
+
+vector_get_cone_dot(to, from, dir)
+{
+	dirToTarget = vectornormalize(to - from);
+	forward = anglestoforward(dir);
+	return vectordot(dirToTarget, forward);
+}
+
+vector_world_to_local(point, origin, forward, right, up)
+{
+	rel = point - origin;
+	lx = rel[0] * right[0]   + rel[1] * right[1]   + rel[2] * right[2];
+	ly = rel[0] * forward[0] + rel[1] * forward[1] + rel[2] * forward[2];
+	lz = rel[0] * up[0]      + rel[1] * up[1]      + rel[2] * up[2];
+	return (lx, ly, lz);
+}
+
+vector_angles_orient_to_normal(normal, yaw)
+{
+    forward = anglesToForward((0, yaw, 0));
+    right = vector_cross(forward, normal);
+    right = vectorNormalize(right);
+    forward = vector_cross(normal, right);
+    forward = vectorNormalize(forward);
+    return vector_to_euler_angles(forward, normal);
+}
+
+vector_angles_look_at(start, end)
+{
+    dir = vectorNormalize(vector_subtract(end, start));
+    return vectorToAngles(dir);
+}
+
+/*
+///DocStringBegin
+detail: vector_is_near(vector <Vector 3>, vector_list <Vector 3[]>, min_distance <Floar>): <Bool>
+summary: Returns true if the point is near to a list of points.
+///DocStringEnd
+*/
+vector_is_near(vector, vector_list, min_distance)
+{
+    if (!isDefined(min_distance)) min_distance = 50;
+    min_distance_sq = min_distance * min_distance;
+    foreach(v in vector_list)
+        if (distanceSquared(v, vector) <= min_distance_sq) return true;
+    return false;
+}
+
+/*
+///DocStringBegin
+detail: vector_sort_by_distance(origin <Vector 3>, vector_list <Vector 3[]>): <Vector 3[]>
+summary: Returns a new list of vectors sorted by distance to the origin.
+///DocStringEnd
+*/
+vector_sort_by_distance(origin, vector_list)
+{
+    if (!isDefined(vector_list) || !isDefined(origin)) return [];
+
+    sorted = [];
+    for (i = 0; i < vector_list.size; i++)
+        sorted[i] = vector_list[i];
+
+    for (i = 0; i < sorted.size - 1; i++)
+    {
+        minIndex = i;
+
+        if (isDefined(sorted[minIndex]))
+            minDistSq = distanceSquared(origin, sorted[minIndex]);
+        else
+            minDistSq = 2147483647;
+
+        for (j = i + 1; j < sorted.size; j++)
+        {
+            if (!isDefined(sorted[j]))
+                distSq = 2147483647;
+            else
+                distSq = distanceSquared(origin, sorted[j]);
+
+            if (distSq < minDistSq)
+            {
+                minDistSq = distSq;
+                minIndex = j;
+            }
+        }
+
+        if (minIndex != i)
+        {
+            temp = sorted[i];
+            sorted[i] = sorted[minIndex];
+            sorted[minIndex] = temp;
+        }
+    }
+
+    return sorted;
 }

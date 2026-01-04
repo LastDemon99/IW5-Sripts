@@ -81,6 +81,39 @@ is_float(value)
 	return is_number(value) && int(value) != value;
 }
 
+is_trigger(value)
+{
+    if (!isDefined(value)) value = self;
+    if (!isDefined(value.classname)) return false;
+
+    switch(value.classname)
+    {
+        case "trigger_radius":
+            return true;
+        case "trigger_multiple":
+            return true;
+        case "trigger_once":
+            return true;
+        case "trigger_use":
+            return true;
+        case "trigger_lookat":
+            return true;
+        case "trigger_damage":
+            return true;
+        case "trigger_hurt":
+            return true;
+        default:
+            return false;
+    }
+}
+
+is_model(value)
+{
+    if (!isDefined(value)) value = self;
+    if (!isDefined(value.classname)) return false;
+    return value.classname == "script_model";
+}
+
 is_type_equal(x, y)
 {
     return (isString(x) && isString(y)) || (isArray(x) && isArray(y)) || (is_vector(x) && is_vector(y)) || (is_float(x) && is_float(y)) || (is_int(x) && is_int(y));
@@ -146,14 +179,22 @@ _wait_time(time)
     self notify("time_end");
 }
 
+waittill_notify_or_timeout( msg, timer )
+{
+    self endon( msg );
+    wait(timer);
+}
+
+/*
+///DocStringBegin
+detail: waittill_any_return(notify1, notify2, notify3, notify4, notify5, notify6, notify7, notify8): <String | Float>
+summary: Wait and return any notification or time listing.
+///DocStringEnd
+*/
 waittill_any_return(notify1, notify2, notify3, notify4, notify5, notify6, notify7, notify8)
 {
-    if (!isDefined(level.waitills)) level.waitills = 0;
-
-    level.waitills++;
-    id = level.waitills;
-
-    endon_msg = "endon" + id;
+    endon_msg = "" + getTime();
+    endon_msg += randomInt(1000000);
 	if (isdefined(notify1)) self thread _waittill_return(endon_msg, notify1);
 	if (isdefined(notify2)) self thread _waittill_return(endon_msg, notify2);
     if (isdefined(notify3)) self thread _waittill_return(endon_msg, notify3);
@@ -161,8 +202,7 @@ waittill_any_return(notify1, notify2, notify3, notify4, notify5, notify6, notify
     if (isdefined(notify5)) self thread _waittill_return(endon_msg, notify5);
     if (isdefined(notify6)) self thread _waittill_return(endon_msg, notify6);
     if (isdefined(notify7)) self thread _waittill_return(endon_msg, notify7);
-    if (isdefined(notify8)) self thread _waittill_return(endon_msg, notify8);
-    
+    if (isdefined(notify8)) self thread _waittill_return(endon_msg, notify8);    
     self waittill(endon_msg, notify_msg);
 	return notify_msg;
 }
@@ -170,8 +210,17 @@ waittill_any_return(notify1, notify2, notify3, notify4, notify5, notify6, notify
 _waittill_return(endon_msg, notify_msg)
 {
     self endon(endon_msg);
-    self waittill(notify_msg);
-    self notify(endon_msg, notify_msg);
+
+    if (isString(notify_msg))
+    {
+        self waittill(notify_msg);
+        self notify(endon_msg, notify_msg);
+    }
+    else
+    {
+        wait notify_msg;
+        self notify(endon_msg, notify_msg);
+    }
 }
 
 wait_frame()
@@ -179,65 +228,28 @@ wait_frame()
 	wait(0.07);
 }
 
-get_map_center()
+get_map_center(rightful)
 {
-	if ( isDefined( level.mapCenter ) )
-		return level.mapCenter;
-	
-	alliesStart = GetEntArray( "mp_tdm_spawn_allies_start", "classname" );
-	axisStart = GetEntArray( "mp_tdm_spawn_axis_start", "classname" );		
-	if ( isDefined( alliesStart ) && isDefined( alliesStart[0] ) && isDefined( axisStart ) && isDefined( axisStart[0] ) )
-	{
-		halfDist = Distance( alliesStart[0].origin, axisStart[0].origin ) / 2;
-		dir = vectorToAngles( alliesStart[0].origin - axisStart[0].origin );
-		dir = vectorNormalize( dir );
-		return alliesStart[0].origin + dir*halfDist;
-	}
-	return (0,0,0);	
-}
-
-predictFallTime(origin, velDir, gravity, maxTime, timeStep)
-{
-    if (!isDefined(velDir)) velDir = (0, 0, 0);
-    if (!isDefined(maxTime)) maxTime = 5;
-    if (!isDefined(timeStep)) timeStep = 0.05;
-
-    velDir = velDir;
-    time = 0;
-    maxLoops = int(maxTime / timeStep);
-
-    for (i = 0; i < maxLoops; i++)
+    if (isDefined(rightful) && rightful)
     {
-        startPos = origin;
-        origin += velDir * timeStep;
-        velDir = (velDir[0], velDir[1], velDir[2] - gravity * timeStep);
-        endPos = origin;
-
-        trace = bulletTrace(startPos, endPos, false, self);
-        if (trace["fraction"] < 1.0)
-        {
-            impactTime = time + (trace["fraction"] * timeStep);
-            return impactTime;
-        }
-        time += timeStep;
+        minimapCorner = getEntArray("minimap_corner", "targetname");
+	    mapcenter = minimapCorner.size ? maps\mp\gametypes\_spawnlogic::findBoxCenter(minimapCorner[0].origin, minimapCorner[1].origin) : (0, 0, 0);
+	    return (level.mapcenter[0], level.mapcenter[1], 0);
     }
 
-    return 0; 
-}
-
-fallTime(gravity)
-{
-    if (!isDefined(gravity)) gravity = 800;
-
-    traceHeightOffset = (0, 0, 20);
-    traceDepth = (0, 0, 2000);
-
-    dropOrigin = playerPhysicsTrace(self.origin + traceHeightOffset, self.origin - traceDepth, 0, self);
-    fallDistance = distance(self.origin, dropOrigin);
-    fallTime = 0;
-
-    if (gravity > 0 && fallDistance > 0.01) fallTime = sqrt(2 * fallDistance / gravity);
-    return fallTime;
+	if (isDefined(level.mapCenter))
+		return level.mapCenter;
+	
+	alliesStart = GetEntArray("mp_tdm_spawn_allies_start", "classname");
+	axisStart = GetEntArray("mp_tdm_spawn_axis_start", "classname");		
+	if (isDefined(alliesStart) && isDefined(alliesStart[0]) && isDefined(axisStart) && isDefined(axisStart[0]))
+	{
+		halfDist = Distance(alliesStart[0].origin, axisStart[0].origin) / 2;
+		dir = vectorToAngles(alliesStart[0].origin - axisStart[0].origin);
+		dir = vectorNormalize(dir);
+		return alliesStart[0].origin + dir*halfDist;
+	}
+	return (0, 0, 0);	
 }
 
 fakeGravity(gravity)
@@ -258,6 +270,7 @@ fakeGravity(gravity)
 		dropAngles = vectorToAngles(forward);
 	}
 	else dropAngles = (0, self.angles[1], 0);
+    dropOrigin = (dropOrigin[0], dropOrigin[1], getGroundPosition(dropOrigin, 30)[2]);
 
     fallDistance = distance(self.origin, dropOrigin);
     fallTime = 0;
@@ -291,4 +304,231 @@ get_current_dsr()
     mapRotation = getDvar("sv_mapRotation");
     if (mapRotation == "" || !lethalbeats\string::string_contains(mapRotation, "dsr")) return undefined;
     return strTok(mapRotation, " ")[1];
+}
+
+get_loadout_blank()
+{
+	NONE = "none";
+	SPECIALTY_NULL = "specialty_null";
+    loadout = [];
+	loadout["loadoutPrimary"] = NONE;
+	loadout["loadoutPrimaryAttachment"] = NONE;
+	loadout["loadoutPrimaryAttachment2"] = NONE;
+	loadout["loadoutPrimaryBuff"] = SPECIALTY_NULL;
+	loadout["loadoutPrimaryCamo"] = NONE;
+	loadout["loadoutPrimaryReticle"] = NONE;
+	loadout["loadoutSecondary"] = NONE;
+	loadout["loadoutSecondaryAttachment"] = NONE;
+	loadout["loadoutSecondaryAttachment2"] = NONE;
+	loadout["loadoutSecondaryBuff"] = SPECIALTY_NULL;
+	loadout["loadoutSecondaryCamo"] = NONE;
+	loadout["loadoutSecondaryReticle"] = NONE;
+	loadout["loadoutEquipment"] = SPECIALTY_NULL;
+	loadout["loadoutOffhand"] = SPECIALTY_NULL;
+	loadout["loadoutPerk1"] = SPECIALTY_NULL;
+	loadout["loadoutPerk2"] = SPECIALTY_NULL;
+	loadout["loadoutPerk3"] = SPECIALTY_NULL;
+	loadout["loadoutStreakType"] = SPECIALTY_NULL;
+	loadout["loadoutKillstreak1"] = NONE;
+	loadout["loadoutKillstreak2"] = NONE;
+	loadout["loadoutKillstreak3"] = NONE;
+	loadout["loadoutDeathstreak"] = SPECIALTY_NULL;
+	loadout["loadoutJuggernaut"] = false;
+	return loadout;
+}
+
+get_players(team, alives)
+{
+    return lethalbeats\player::players_get_list(team, alives);
+}
+
+get_players_by_string(target)
+{
+    return lethalbeats\player::players_by_string(target);
+}
+
+get_perks()
+{
+    return lethalbeats\perk::perk_get_list();
+}
+
+get_gametype_dvar(type)
+{
+    return getDvar("scr_" + level.gameType + "_" + type);
+}
+
+get_gametype_dvar_int(type)
+{
+    return getDvarInt("scr_" + level.gameType + "_" + type);
+}
+
+inOvertime()
+{
+    return isdefined(game["status"]) && game["status"] == "overtime";
+}
+
+getTimeLimit()
+{
+    if (inOvertime() && (!isdefined(game["inNukeOvertime"]) || !game["inNukeOvertime"]))
+    {
+        timeLimit = int(getdvar("overtimeTimeLimit"));
+
+        if (isdefined(timeLimit))
+        {
+            return timeLimit;
+            return;
+        }
+
+        return 1;
+        return;
+    }
+    else if (isdefined(level.dd) && level.dd && isdefined(level.bombexploded) && level.bombexploded > 0)
+        return getWatchedDvar("timelimit") + level.bombexploded * level.ddtimetoadd;
+    else
+        return getWatchedDvar("timelimit");
+}
+
+getHalfTime()
+{
+    if (inOvertime())
+        return 0;
+    else if (isdefined(game["inNukeOvertime"]) && game["inNukeOvertime"])
+        return 0;
+    else
+        return getWatchedDvar("halftime");
+}
+
+getWatchedDvar(dvarString)
+{
+    dvarString = "scr_" + level.gametype + "_" + dvarString;
+
+    if (isdefined(level.overridewatchdvars) && isdefined(level.overridewatchdvars[dvarString]))
+        return level.overridewatchdvars[dvarString];
+
+    return level.watchdvars[dvarString].value;
+}
+
+setObjectiveText(team, text)
+{
+    game["strings"]["objective_" + team] = text;
+    precachestring(text);
+}
+
+setObjectiveScoreText(team, text)
+{
+    game["strings"]["objective_score_" + team] = text;
+    precachestring(text);
+}
+
+setObjectiveHintText(team, text)
+{
+    game["strings"]["objective_hint_" + team] = text;
+    precachestring(text);
+}
+
+registerWatchDvarInt(nameString, defaultValue)
+{
+    dvarString = "scr_" + level.gametype + "_" + nameString;
+    level.watchdvars[dvarString] = spawnstruct();
+    level.watchdvars[dvarString].value = getdvarint(dvarString, defaultValue);
+    level.watchdvars[dvarString].type = "int";
+    level.watchdvars[dvarString].notifystring = "update_" + nameString;
+}
+
+registerWatchDvarFloat(nameString, defaultValue)
+{
+    dvarString = "scr_" + level.gametype + "_" + nameString;
+    level.watchdvars[dvarString] = spawnstruct();
+    level.watchdvars[dvarString].value = getdvarfloat(dvarString, defaultValue);
+    level.watchdvars[dvarString].type = "float";
+    level.watchdvars[dvarString].notifystring = "update_" + nameString;
+}
+
+registerRoundLimitDvar(dvarString, defaultValue)
+{
+    registerWatchDvarInt("roundlimit", defaultValue);
+}
+
+registerWinLimitDvar(dvarString, defaultValue)
+{
+    registerWatchDvarInt("winlimit", defaultValue);
+}
+
+registerScoreLimitDvar(dvarString, defaultValue)
+{
+    registerWatchDvarInt("scorelimit", defaultValue);
+}
+
+registerTimeLimitDvar(dvarString, defaultValue)
+{
+    registerWatchDvarFloat("timelimit", defaultValue);
+    makedvarserverinfo("ui_timelimit", getTimeLimit());
+}
+
+registerHalfTimeDvar(dvarString, defaultValue)
+{
+    registerWatchDvarInt("halftime", defaultValue);
+    makedvarserverinfo("ui_halftime", getHalfTime());
+}
+
+registerNumLivesDvar(dvarString, defaultValue)
+{ registerWatchDvarInt("numlives", defaultValue);
+}
+
+registerRoundSwitchDvar(dvarString, defaultValue, minValue, maxValue)
+{
+    registerWatchDvarInt("roundswitch", defaultValue);
+    dvarString = "scr_" + dvarString + "_roundswitch";
+    level.roundswitchdvar = dvarString;
+    level.roundswitchmin = minValue;
+    level.roundswitchmax = maxValue;
+    level.roundswitch = getDvarInt(dvarString, defaultValue);
+
+    if (level.roundswitch < minValue)
+        level.roundswitch = minValue;
+    else if (level.roundswitch > maxValue)
+        level.roundswitch = maxValue;
+}
+
+setOverTimeLimitDvar(value)
+{
+    makedvarserverinfo("overtimeTimeLimit", value);
+}
+
+reInitializeMatchRulesOnMigration()
+{
+    for (;;)
+    {
+        level waittill("host_migration_begin");
+        [[level.initializematchrules]]();
+    }
+}
+
+streak_is_specialist(streakName)
+{
+    return maps\mp\killstreaks\_killstreaks::isSpecialistKillstreak(streakName); 
+}
+
+generate_id(prefix)
+{
+    if (!isDefined(level.id_counter)) level.id_counter = 0;
+    level.id_counter++;
+    time  = getTime();
+    rand  = randomInt(1000000);
+    id = int_to_base36((time * 100000000) + (level.id_counter * 1000) + rand);
+    return isDefined(prefix) ? prefix + id : id;
+}
+
+int_to_base36(num)
+{
+    chars = "0123456789abcdefghijklmnopqrstuvwxyz";
+    if (num <= 0) return "0";
+    out = "";
+    while (num > 0)
+    {
+        rem = num % 36;
+        out = getSubStr(chars, rem, 1) + out;
+        num = floor(num / 36);
+    }
+    return out;
 }

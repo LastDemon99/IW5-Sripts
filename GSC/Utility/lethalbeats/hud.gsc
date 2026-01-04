@@ -22,7 +22,11 @@ hud_create_elem(target, elemType, align, relative, x, y)
 {    
     if (!isDefined(target)) hudElem = newhudelem();
     else if (isPlayer(target)) hudElem = newClientHudElem(target);
-	else if (isString(target)) hudElem = newTeamHudElem(target);
+	else if (isString(target))
+    {
+        if (target == "all" || target == "neutral") hudElem = newhudelem();
+        else hudElem = newTeamHudElem(target);
+    }
 	else hudElem = newhudelem();
 	
     if (isDefined(elemType)) hudElem.elemType = elemType;
@@ -57,6 +61,7 @@ hud_create_timer(target, time, font, size, align, relative, x, y)
     timer.font = font;
     timer.fontscale = size;
     timer.basefontscale = size;
+    timer.maxFontScale = size * 1.5;
     timer.height = int(level.fontheight * size);
     timer setTimer(time);
     return timer;
@@ -76,6 +81,7 @@ hud_create_string(target, text, font, size, align, relative, x, y)
     hudText.font = font;
     hudText.fontscale = size;
     hudText.baseFontScale = size;
+    hudText.maxFontScale = size * 1.5;
     hudText.height = int(level.fontHeight * size);
     hudText setText(text);
     return hudText;
@@ -154,7 +160,6 @@ hud_set_countdown(countTime, sound, endNotify, pulseEffect)
 {
 	if (!isDefined(endNotify)) endNotify = "countdown_end";
 	if (!isDefined(pulseEffect)) pulseEffect = false;
-	else if (pulseEffect) self hud_init_pulse_effect();
 
 	self setValue(countTime);
 
@@ -166,7 +171,7 @@ hud_set_countdown(countTime, sound, endNotify, pulseEffect)
 			else lethalbeats\player::players_play_sound(sound, self.target);
 		}
 		
-		if (pulseEffect) self thread hud_effect_font_Pulse(level);
+		if (pulseEffect) self hud_effect_font_Pulse(level);
 		wait IN_FRAMES;
 		self setValue(countTime);
 		countTime--;
@@ -495,19 +500,11 @@ hud_destroy()
 
 hud_delete() { self hud_destroy(); }
 
-hud_init_pulse_effect(maxFontScale)
+hud_effect_font_pulse(player) { self thread _pulseEffect(player); }
+_pulseEffect(player)
 {
-	if (!isDefined(maxFontScale)) maxFontScale = self.fontScale * 2;
-	self.baseFontScale = self.fontScale;
-	self.maxFontScale = min(maxFontScale, 6.3);
-	self.inFrames = 2;
-	self.outFrames = 4;
-}
-
-hud_effect_font_pulse(player)
-{
-	self notify("fontPulse");
-	self endon("fontPulse");
+    self notify("fontPulse");
+    self endon("fontPulse");
 	self endon("death");
 	
 	player endon("disconnect");
@@ -577,7 +574,7 @@ summary: Create a 2d hud objective.
 */
 hud_create_2d_objective(showTo, shader)
 {
-	if (showTo == "all")
+	if (!isDefined(showTo) || (isString(showTo) && (showTo == "all" || showTo == "neutral")))
 	{
 		hud_create_2d_objective("allies", shader);
 		hud_create_2d_objective("axis", shader);
@@ -593,24 +590,30 @@ hud_create_2d_objective(showTo, shader)
 	if (isPlayer(showTo)) objective_player(objId, showTo);
 	else objective_team(objId, showTo);
 
-    self.objID = objId;
+    if (!isDefined(self.objID)) self.objID = [objId];
+    else self.objID[self.objID.size] = objId;
 }
 
 hud_delete_2d_objective(objId)
 {
     if (!isDefined(objId)) objId = self.objID;
-    objective_delete(objId);
-    if (!isdefined(level.reclaimedreservedobjectives))
+    if (!isArray(objId)) objId = [objId];
+
+    foreach(id in objId)
     {
-        level.reclaimedreservedobjectives = [];
-        level.reclaimedreservedobjectives[0] = objId;
+        objective_delete(id);
+        if (!isdefined(level.reclaimedreservedobjectives))
+        {
+            level.reclaimedreservedobjectives = [];
+            level.reclaimedreservedobjectives[0] = id;
+        }
+        else level.reclaimedreservedobjectives[level.reclaimedreservedobjectives.size] = id;
     }
-    else level.reclaimedreservedobjectives[level.reclaimedreservedobjectives.size] = objId;
 }
 
 hud_update_2d_objective(shader, objId)
 {
-    if (!isDefined(objId)) objId = self.objID;    
+    if (!isDefined(objId)) objId = self.objID[0];    
 	objective_icon(objId, shader);
 }
 
@@ -622,6 +625,12 @@ summary: Create and returns a 3d hud objective.
 */
 hud_create_3d_objective(showTo, shader, height, width, targetEnt)
 {
+    if (!isDefined(height) && isDefined(width)) height = width;
+    else height = 8;
+
+    if (!isDefined(width) && isDefined(height)) width = height;
+    else width = 8;
+
     objective = hud_create_elem(showTo);
 	objective setShader(shader, height, width);
 	objective setWaypoint(true, true);
@@ -661,3 +670,20 @@ hud_notify_message(notifyData, target)
         else lethalbeats\array::array_thread_ent(level.players, maps\mp\gametypes\_hud_message::notifyMessage, notifyData);
     }
 }
+
+hud_splash_killstreak(streakName, streakVal, appendString)
+{
+	self thread maps\mp\gametypes\_hud_message::killstreakSplashNotify(streakName, streakVal, appendString);
+}
+
+/*
+///DocStringBegin
+detail: hud_splash_weapon(weapon: <String>): <Void>
+summary: Display a popup hud message with weapon name, thread is required.
+///DocStringEnd
+*/
+hud_splash_weapon(weapon)
+{
+	self thread maps\mp\gametypes\_rank::xpEventPopup(lethalbeats\weapon::weapon_get_display_name(lethalbeats\weapon::weapon_get_baseName(weapon)));
+}
+
