@@ -19,63 +19,29 @@ pointInCylinder(point, cylPos, radius, height)
 /*
 ///DocStringBegin
 detail: raySphereIntersect(start: <Vector3>, end: <Vector3>, spherePos: <Vector3>, radius: <Float>): <Bool>
-summary: Pezbot's line sphere intersection: http://paulbourke.net/geometry/circlesphere/raysphere.c
+summary: Line sphere intersection.
 ///DocStringEnd
 */
-raySphereIntersect(start, end, spherePos, radius)
+raySphereIntersect(start, end, center, radius)
 {
-	// check if the start or end points are in the sphere
-	r2 = radius * radius;
-	
-	if (distancesquared(start, spherePos) < r2)
-	{
-		return true;
-	}
-	
-	if (distancesquared(end, spherePos) < r2)
-	{
-		return true;
-	}
-	
-	// check if the line made by start and end intersect the sphere
-	dp = end - start;
-	a = dp[ 0 ] * dp[ 0 ] + dp[ 1 ] * dp[ 1 ] + dp[ 2 ] * dp[ 2 ];
-	b = 2 * (dp[ 0 ] * (start[ 0 ] - spherePos[ 0 ]) + dp[ 1 ] * (start[ 1 ] - spherePos[ 1 ]) + dp[ 2 ] * (start[ 2 ] - spherePos[ 2 ]));
-	c = spherePos[ 0 ] * spherePos[ 0 ] + spherePos[ 1 ] * spherePos[ 1 ] + spherePos[ 2 ] * spherePos[ 2 ];
-	c += start[ 0 ] * start[ 0 ] + start[ 1 ] * start[ 1 ] + start[ 2 ] * start[ 2 ];
-	c -= 2.0 * (spherePos[ 0 ] * start[ 0 ] + spherePos[ 1 ] * start[ 1 ] + spherePos[ 2 ] * start[ 2 ]);
-	c -= radius * radius;
-	bb4ac = b * b - 4.0 * a * c;
-	
-	if (abs(a) < 0.0001 || bb4ac < 0)
-	{
-		return false;
-	}
-	
-	mu1 = (0 - b + sqrt(bb4ac)) / (2 * a);
-	// mu2 = (0-b - sqrt(bb4ac)) / (2 * a);
-	
-	// intersection points of the sphere
-	ip1 = start + mu1 * dp;
-	// ip2 = start + mu2 * dp;
-	
-	myDist = distancesquared(start, end);
-	
-	// check if both intersection points far
-	if (distancesquared(start, ip1) > myDist/* && distancesquared(start, ip2) > myDist*/)
-	{
-		return false;
-	}
-	
-	dpAngles = vectortoangles(dp);
-	
-	// check if the point is behind us
-	if (lethalbeats\vector::vector_get_cone_dot(ip1, start, dpAngles) < 0/* || getConeDot(ip2, start, dpAngles) < 0*/)
-	{
-		return false;
-	}
-	
-	return true;
+    d = end - start;
+    f = start - center;
+
+    a = vectorDot(d, d);
+    b = 2 * vectorDot(f, d);
+    c = vectorDot(f, f) - radius * radius;
+
+    discriminant = b * b - 4f * a * c;
+
+    if (discriminant < 0)
+        return false;
+
+    discriminant = sqrt(discriminant);
+
+    t1 = (-b - discriminant) / (2 * a);
+    t2 = (-b + discriminant) / (2 * a);
+
+    return (t1 >= 0 && t1 <= 1) || (t2 >= 0 && t2 <= 1);
 }
 
 /*

@@ -37,6 +37,7 @@ trigger_create(origin, radius, height)
 	trigger.hintStringY = 130;
 	trigger.hintStringAlpha = 1;
 	trigger.customEnableCondition = undefined;
+	trigger.customUseEnableCondition = undefined;
 	trigger.disabled = false;
 	trigger _triggerInit();
 
@@ -96,6 +97,11 @@ trigger_set_hint_string(hintString)
 trigger_set_enable_condition(condition)
 {
 	self.customEnableCondition = condition;
+}
+
+trigger_set_enable_use_condition(condition)
+{
+	self.customUseEnableCondition = condition;
 }
 
 trigger_enable_share(share)
@@ -172,16 +178,20 @@ _triggerMainLoop()
 	{
 		foreach(trigger in level.triggers)
 		{
+			if (!isDefined(trigger) || trigger.disabled) continue;
+
 			foreach(player in level.players)
 			{
-				if (!isDefined(trigger) || trigger.disabled) continue;
-				if (!isDefined(player) || !isPlayer(player)) continue;
+				if (!isDefined(player) || !isAlive(player)) continue;
 
 				hasEntered = lethalbeats\array::array_contains(trigger.hasEntered, player);
+				isTouching = trigger trigger_is_touching(player);
+
+				if (!isTouching && !hasEntered) continue;
 				
 				if (!trigger _isEnableTo(player))
 				{
-					if ((isDefined(trigger.hintString) || isDefined(trigger.useBar)) && hasEntered)
+					if (hasEntered)
 					{
 						trigger.hasEntered = lethalbeats\array::array_remove(trigger.hasEntered, player);
 						trigger _triggerNotify(TRIGGER_LEAVE, player);
@@ -190,17 +200,24 @@ _triggerMainLoop()
 					continue;
 				}
 
-				if (trigger trigger_is_touching(player))
+				if (isTouching)
 				{
-					if (!isDefined(player.closestTrigger))
+					if (trigger _isUseEnableTo(player))
 					{
-						player.closestTrigger = trigger;
-						if (isDefined(trigger.hintString)) player _playerShowHintString(trigger.hintString, trigger.hintStringAlpha, trigger.hintStringX, trigger.hintStringY);
+						if (!isDefined(player.closestTrigger))
+						{
+							player.closestTrigger = trigger;
+							if (isDefined(trigger.hintString)) player _playerShowHintString(trigger.hintString, trigger.hintStringAlpha, trigger.hintStringX, trigger.hintStringY);
+						}
+						else if (player.closestTrigger != trigger && distanceSquared(player.origin, player.closestTrigger.origin) > distanceSquared(player.origin, trigger.origin))
+						{
+							player.closestTrigger = trigger;
+							if (isDefined(trigger.hintString)) player _playerShowHintString(trigger.hintString, trigger.hintStringAlpha, trigger.hintStringX, trigger.hintStringY);
+						}
 					}
-					else if (player.closestTrigger != trigger && distanceSquared(player.origin, player.closestTrigger.origin) > distanceSquared(player.origin, trigger.origin))
+					else if (isDefined(player.closestTrigger) && player.closestTrigger == trigger)
 					{
-						player.closestTrigger = trigger;
-						if (isDefined(trigger.hintString)) player _playerShowHintString(trigger.hintString, trigger.hintStringAlpha, trigger.hintStringX, trigger.hintStringY);
+						player _playerClearClosestTrigger();
 					}
 
 					trigger _triggerNotify(TRIGGER_RADIUS, player);
@@ -251,6 +268,7 @@ _onPlayerTriggerUse()
 		if (!isDefined(self.closestTrigger)) continue;
 
 		trigger = self.closestTrigger;
+		if (!trigger _isUseEnableTo(self)) continue;
 		if (!trigger.shareUse && trigger.inUseBy.size) continue;
 		if (!array_contains(trigger.inUseBy, self)) trigger.inUseBy[trigger.inUseBy.size] = self;
 
@@ -267,7 +285,7 @@ _onPlayerTriggerUse()
 
 _playerHoldMonitor(trigger, condition)
 {
-	self.isHolding = true;
+	self.isHoldingTrigger = true;
 	if (isDefined(trigger.useBar)) self _playerShowUseBar(trigger);
 
 	trigger _triggerNotify(TRIGGER_USE_HOLD, self);
@@ -281,7 +299,7 @@ _playerHoldMonitor(trigger, condition)
 			trigger _triggerNotify(TRIGGER_HOLD_INTERRUMP, self);
 			if (isDefined(trigger.useBar)) self _playerClearUseBar();
 			trigger.inUseBy = array_remove(trigger.inUseBy, self);
-			self.isHolding = undefined;
+			self.isHoldingTrigger = undefined;
 			return;
 		}
 
@@ -303,7 +321,7 @@ _playerHoldMonitor(trigger, condition)
 	trigger _triggerNotify(TRIGGER_HOLD_COMPLETE, self);
 	if (isDefined(trigger.useBar)) self _playerClearUseBar();
 	trigger.inUseBy = array_remove(trigger.inUseBy, self);
-	self.isHolding = undefined;
+	self.isHoldingTrigger = undefined;
 }
 
 _triggerNotify(type, player)
@@ -377,9 +395,17 @@ _playerClearUseBar()
 
 _isEnableTo(player) 
 { 
-	if (isDefined(player.isHolding)) return false;
+	if (!isAlive(player)) return false;
 	if (!isDefined(self.customEnableCondition)) return true;
-	return self [[self.customEnableCondition]](player); 
+	return self [[self.customEnableCondition]](player);
+}
+
+_isUseEnableTo(player) 
+{ 
+	if (!isAlive(player)) return false;
+	if (isDefined(player.disabledusability) && !isDefined(player.isHoldingTrigger) && player.disabledusability) return false;
+	if (!isDefined(self.customUseEnableCondition)) return true;
+	return self [[self.customUseEnableCondition]](player);
 }
 
 _isButtonPressed(player) { return player useButtonPressed(); }
