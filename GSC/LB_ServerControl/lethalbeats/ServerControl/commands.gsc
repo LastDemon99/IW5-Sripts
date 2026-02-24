@@ -1,5 +1,3 @@
-#include common_scripts\utility;
-#include maps\mp\_utility;
 #include lethalbeats\array;
 #include lethalbeats\string;
 #include lethalbeats\servercontrol\groups;
@@ -20,12 +18,12 @@ init()
 	// cmd, functionPointer, power, min_arguments, usage_message, valid_message, invalid_message, argsAsMessage
 	setCommand("help", ::help);
 	setCommand("map", ::changeMap, 70, 1, "Use !map <name> to change the map.", "Maps has been changed to <arg1>.", "<arg1> is not a valid map.");
-	setCommand("dst", ::changeDsr, 70, 1, "Use !dsr <name> to change the dsr.", "Dsr has been changed to <arg1>.", "<arg1> is not a valid dsr.");
+	setCommand("dsr", ::changeDsr, 70, 1, "Use !dsr <name> to change the dsr.", "DSR has been changed to <arg1>.", "<arg1> is not a valid dsr.");
 	setCommand("rotate", ::rotate, 70, 0, undefined, "Level has been rotated.");
 	setCommand("restart", ::restart, 70, 0, undefined, "Map has been restarted.");
 	setCommand("fastRestart", ::fastrestart, 70, 0, undefined, "Map has been restarted.");
 	setCommand("kick", ::_kick, 70, 1, "Use !kick <name|#id> <reason> to kick the player.", "<arg1> has been kicked.", "<arg1> is not a valid <arg2>.");
-	setCommand("ban", ::ban, 70, 1, "Use !ban <name|#id> <time> <reason> to ban the player.", "<arg1> has been banned for a period of <arg2>.", "Player not found.");
+	setCommand("ban", ::ban, 70, 1, "Use !ban <name|#id> <time> <reason> to ban the player.", "<arg1> has been banned for a period of <arg2>.", "<arg1> is not a valid <arg2>.");
 	setCommand("pban", ::pban, 70, 1, "Use !pban <name|#id> <reason> to permanently ban the player.", "<arg1> has been banned permanently.", "Player not found.");
 	setCommand("unban", ::unban, 70, 1, "Use !unban <name|#id> <reason> to unban the player.", "<arg1> has been unbanned permanently.", "Player not found.");
 	setCommand("suicide", ::_suicide);
@@ -191,20 +189,31 @@ changeMap(valid_msg, invalid_msg, map)
 		return;
 	}
 
-	say(format_message(valid_msg, strTok(target, ";")[1]));
-	cmdexec("map " + strTok(target, ";")[0]);
+	say(format_message(valid_msg, target[1]));
+	cmdexec("map " + target[0]);
 }
 
 changeDsr(valid_msg, invalid_msg, dsr)
 {
-	say(format_message(valid_msg, dsr));
 	cmdexec("load_dsr " + dsr);
 	wait(0.35);
 	cmdexec("map_restart");
+	say(format_message(valid_msg, dsr));
 }
 
-rotate(valid_msg) // not finished required map rotate
+rotate(valid_msg)
 {
+	mapRotation = getDvar("sv_mapRotation");
+	if (!isDefined(mapRotation)) return;
+
+	mapRotation = string_replace(mapRotation, "map ", "");
+	mapRotation = strTok(mapRotation, " ");	
+	maps = array_slice(mapRotation, 2);
+
+	cmdexec("load_dsr " + mapRotation[1]);
+	wait(0.35);
+	cmdexec("map " + array_random(maps));
+	say(valid_msg);
 }
 
 restart(valid_msg)
@@ -227,8 +236,13 @@ _kick(valid_msg, invalid_msg, target, reason)
 	if (isDefined(target)) kick(target GetEntityNumber());
 }
 
-ban(valid_msg, invalid_msg) // not finished required plugin SDK write & read files
+ban(valid_msg, invalid_msg, target, time, reason) // not finished required plugin SDK write & read files
 {
+	//"Use !ban <name|#id> <time> <reason> to ban the player.", "<arg1> has been banned for a period of <arg2>.", "<arg1> is not a valid <arg2>.");
+	//if (!isDefined(reason)) reason = "You has been banned.";
+	//target = findPlayer(target);
+	//say(format_message(valid_msg, target.name));
+	//if (isDefined(target)) kick(target GetEntityNumber());
 }
 
 pban(valid_msg, invalid_msg) // not finished required plugin SDK write & read files
@@ -373,8 +387,9 @@ rules(valid_msg, invalid_msg, target) // not finished
 	
 }
 
-format_message(msg, arg1, arg2, arg3)
+format_message(msg, arg1, arg2, arg3, arg4)
 {
+	if (isDefined(arg4)) msg = string_replace(msg, "<arg4>", arg4 + "");
 	if (isDefined(arg3)) msg = string_replace(msg, "<arg3>", arg3 + "");
 	if (isDefined(arg2)) msg = string_replace(msg, "<arg2>", arg2 + "");
 	if (isDefined(arg1)) msg = string_replace(msg, "<arg1>", arg1 + "");
@@ -385,10 +400,10 @@ findMap(target)
 {
 	target = tolower(target);
 	maps = getMaps();	
-	foreach (item in maps)
-		if(isSubStr(tolower(item), target))
-			return item;
-	return undefined;	
+	foreach (map in maps)
+		if(isSubStr(tolower(map), toLower(target)))
+			return strTok(map, ";");
+	return undefined;
 }
 
 findPlayer(target)
@@ -438,4 +453,14 @@ getMaps()
             "mp_restrepo_ss;Lookout",
             "mp_courtyard_ss;Erosion",
             "mp_terminal_cls;Terminal" ];
+}
+
+getMap(map)
+{
+	return findMap(map)[0];
+}
+
+getMapAlias(map)
+{
+	return findMap(map)[1];
 }

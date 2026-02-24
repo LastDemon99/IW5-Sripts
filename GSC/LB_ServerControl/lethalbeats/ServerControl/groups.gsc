@@ -12,6 +12,9 @@
 
 init()
 {
+	level.players_data = [];
+	level.groups = [];
+
 	// group, power, chatAlias
 	setGroup(GUEST, 0, "^0[^7Guest^0]^7:");
 	setGroup(DEVELOPER, 100, "^0[^6Developer^0]^7:");
@@ -35,17 +38,18 @@ giveGroup(guid, groupIndex)
 
 setGroup(group, power, alias)
 {
-	if (!isDefined(level.groups)) level.groups = [];
 	level.groups[group] = [power, alias];
 }
 
 getGroupAlias()
 {
+	if (!isDefined(level.players_data[self.guid])) return "";
 	return level.groups[self getGroup()][POWER];
 }
 
 getGroupPower()
 {
+	if (!isDefined(level.players_data[self.guid])) return 0;
 	return level.groups[self getGroup()][POWER];
 }
 
