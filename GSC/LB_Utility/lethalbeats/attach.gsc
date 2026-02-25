@@ -106,10 +106,12 @@ summary: Returns true if attachment has a valid combination with attachs array.
 */
 attach_is_combo(attach, attachs)
 {
-	colIndex = tableLookupRowNum(ATTACH_COMBO_TABLE, 0, attach);
+	baseAttach = attach_get_basename(attach);
+	colIndex = tableLookupRowNum(ATTACH_COMBO_TABLE, 0, baseAttach);
 	for (i = 0; i < attachs.size; i++)
 	{
-		if (tableLookup(ATTACH_COMBO_TABLE, 0, attachs[i], colIndex) == "no")
+		other = attach_get_basename(attachs[i]);
+		if (tableLookup(ATTACH_COMBO_TABLE, 0, other, colIndex) == "no")
 			return false;
 	}
 	return true;

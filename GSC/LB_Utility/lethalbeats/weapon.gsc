@@ -434,7 +434,20 @@ summary: Returns an array of attachments that the weapon can have. If second arg
 weapon_get_attachs(baseName, return_builded)
 {
 	if (!isDefined(return_builded)) return_builded = true;
-	if (weapon_is_custom(baseName)) return level.customWeapons[baseName][2]; // where did the part about specifying the format... if is custom wep, returns built and that's it?? (￢_￢)(´･ω･`)?
+	
+	if (weapon_is_custom(baseName))
+	{
+		attachs = level.customWeapons[baseName][2];
+		if (return_builded)
+		{
+			for (i = 0; i < attachs.size; i++)
+			{
+				if (attach_get_type(attachs[i]) == RAIL)
+					attachs[i] = attach_build(attachs[i], baseName);
+			}
+		}
+		return attachs;
+	}
 	
 	table = tableLookup(CHALLENGE_TABLE, CHALLENGE_BASENAME_COLUMN, baseName, CHALLENGE_TABLES_COLUMN);
 	attachs = [];	
