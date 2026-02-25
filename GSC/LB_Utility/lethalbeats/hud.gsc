@@ -161,7 +161,7 @@ hud_set_countdown(countTime, sound, endNotify, pulseEffect)
 	if (!isDefined(endNotify)) endNotify = "countdown_end";
 	if (!isDefined(pulseEffect)) pulseEffect = false;
 
-	self setValue(countTime);
+	self hud_set_value(countTime);
 
 	while (countTime > 0)
 	{
@@ -173,12 +173,24 @@ hud_set_countdown(countTime, sound, endNotify, pulseEffect)
 		
 		if (pulseEffect) self hud_effect_font_Pulse(level);
 		wait IN_FRAMES;
-		self setValue(countTime);
+		self hud_set_value(countTime);
 		countTime--;
 		wait (1 - IN_FRAMES);
 	}
 	self destroy();
 	level notify(endNotify, self.target);
+}
+
+/*
+///DocStringBegin
+detail: <HudElement> hud_set_value(value: <Any>): <Void>
+summary: Set hud value & set .value field.
+///DocStringEnd
+*/
+hud_set_value(value)
+{
+    self setValue(value);
+    self.value = value;
 }
 
 /*

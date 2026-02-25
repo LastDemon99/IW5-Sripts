@@ -257,13 +257,14 @@ _onPlayerTriggerUse()
 	self endon("disconnect");
 
 	self notifyOnPlayerCommand("key_down", "+activate");
-	self notifyOnPlayerCommand("key_down2", "+usereload");
+	self notifyOnPlayerCommand("jkey_down", "+usereload");
 	self notifyOnPlayerCommand("key_up", "-activate");
-	self notifyOnPlayerCommand("key_up2", "-activate");
+	self notifyOnPlayerCommand("jkey_up", "-usereload");
 
 	for(;;)
 	{
-		self lethalbeats\utility::waittill_any("key_down", "key_down2");
+		keyType = self lethalbeats\utility::waittill_any_return("key_down", "jkey_down");
+
 		if (!self useButtonPressed()) continue;
 		if (!isDefined(self.closestTrigger)) continue;
 
@@ -274,21 +275,21 @@ _onPlayerTriggerUse()
 
 		if (trigger.type == TRIGGER_USE)
 		{
-			trigger _triggerNotify(TRIGGER_USE, self);
+			trigger _triggerNotify(TRIGGER_USE, self, keyType);
 			trigger.inUseBy = array_remove(trigger.inUseBy, self);
-			self lethalbeats\utility::waittill_any("key_up", "key_up2");
+			self lethalbeats\utility::waittill_any("key_up", "jkey_up");
 		}
 		else if (trigger.type == TRIGGER_USE_HOLD)
-			self _playerHoldMonitor(trigger, ::_isButtonPressed);
+			self _playerHoldMonitor(trigger, ::_isButtonPressed, keyType);
 	}
 }
 
-_playerHoldMonitor(trigger, condition)
+_playerHoldMonitor(trigger, condition, keyType)
 {
 	self.isHoldingTrigger = true;
 	if (isDefined(trigger.useBar)) self _playerShowUseBar(trigger);
 
-	trigger _triggerNotify(TRIGGER_USE_HOLD, self);
+	trigger _triggerNotify(TRIGGER_USE_HOLD, self, keyType);
 
 	holdElapsed = 0;
 	holdStep = 0.05;
@@ -296,7 +297,7 @@ _playerHoldMonitor(trigger, condition)
 	{
 		if (!trigger [[condition]](self))
 		{
-			trigger _triggerNotify(TRIGGER_HOLD_INTERRUMP, self);
+			trigger _triggerNotify(TRIGGER_HOLD_INTERRUMP, self, keyType == "key_down" ? "key_up" : "jkey_up");
 			if (isDefined(trigger.useBar)) self _playerClearUseBar();
 			trigger.inUseBy = array_remove(trigger.inUseBy, self);
 			self.isHoldingTrigger = undefined;
@@ -318,19 +319,19 @@ _playerHoldMonitor(trigger, condition)
 		wait holdStep;
 	}
 
-	trigger _triggerNotify(TRIGGER_HOLD_COMPLETE, self);
+	trigger _triggerNotify(TRIGGER_HOLD_COMPLETE, self, keyType);
 	if (isDefined(trigger.useBar)) self _playerClearUseBar();
 	trigger.inUseBy = array_remove(trigger.inUseBy, self);
 	self.isHoldingTrigger = undefined;
 }
 
-_triggerNotify(type, player)
+_triggerNotify(type, player, arg1, arg2, arg3)
 {
 	if (!isDefined(self)) return;
 	_triggers = TRIGGERS;
 	typeString = PREFIX + _triggers[type];
-	self notify(typeString, player);
-	player notify(typeString, self);
+	self notify(typeString, player, arg1, arg2, arg3);
+	player notify(typeString, self, arg1, arg2, arg3);
 }
 
 _playerClearClosestTrigger(trigger)

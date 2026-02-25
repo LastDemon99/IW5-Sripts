@@ -120,6 +120,7 @@ openShop(page, is_back)
 
 closeShop()
 {
+	self notify("close_shop");
 	self.shop = undefined;
     self.menuPages = [];
 	self closeMenu("dynamic_shop");
