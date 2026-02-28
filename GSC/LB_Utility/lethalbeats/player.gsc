@@ -806,12 +806,13 @@ player_black_screen(time)
 	self visionSetNakedForPlayer("", 2);
 }
 
-player_can_see(targetOrigin)
+player_can_see(targetOrigin, cos)
 {
+	if (!isDefined(cos)) cos = 0.7;
 	eyePos = self getEye();
 	toTargetDir = vectorNormalize(targetOrigin - eyePos);
 	forward = anglesToForward(self.angles);
-	return vectorDot(toTargetDir, forward) > 0.18;
+	return vectorDot(toTargetDir, forward) > cos;
 }
 
 /*

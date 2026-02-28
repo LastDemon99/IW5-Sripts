@@ -277,7 +277,6 @@ _onPlayerTriggerUse()
 		{
 			trigger _triggerNotify(TRIGGER_USE, self, keyType);
 			trigger.inUseBy = array_remove(trigger.inUseBy, self);
-			self lethalbeats\utility::waittill_any("key_up", "jkey_up");
 		}
 		else if (trigger.type == TRIGGER_USE_HOLD)
 			self _playerHoldMonitor(trigger, ::_isButtonPressed, keyType);
