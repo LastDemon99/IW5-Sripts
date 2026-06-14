@@ -57,7 +57,7 @@ onPlayerConnect()
 onPlayerSpawn()
 {
 	self endon("disconnect");
-	self thread giveUavFFA();
+	if(getDvarInt("sweep_uav")) self thread giveUavFFA();
 	
 	for(;;)
 	{
